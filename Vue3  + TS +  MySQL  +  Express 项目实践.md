@@ -1,5 +1,10 @@
 # Vue3  + TS +  MySQL  +  Express 项目实践
 
+### 最终项目提交
+
+* 项目包（3~5人）：前端项目 + 接口项目 + SQL + 说明文档
+* 实习报告（1人）
+
 ## MySQL基础
 
 ### MySQL安装与连接
@@ -67,7 +72,7 @@ mysql -u root -p
 
 #### CentOS下查看MySQL的初始密码
 
-```
+```bash
 sudo grep "password" /var/log/mysqld.log
 ```
 
@@ -78,10 +83,10 @@ sudo grep "password" /var/log/mysqld.log
 * phpadmin
 * Php + apache + mysql
 
-* [DataGrip][https://www.jetbrains.com/zh-cn/datagrip/]
-* [Navicat Premium][https://www.navicat.com/en/products/navicat-premium]
-* [MySQL Workbench][https://www.mysql.com/products/workbench/]
-* [Navicat for MySQL][https://www.navicat.com/en/products/navicat-for-mysql]
+* [DataGrip](https://www.jetbrains.com/zh-cn/datagrip/)
+* [Navicat Premium](https://www.navicat.com/en/products/navicat-premium)
+* [MySQL Workbench](https://www.mysql.com/products/workbench/)
+* [Navicat for MySQL](https://www.navicat.com/en/products/navicat-for-mysql)
 
 #### MySQL客户端连接
 
@@ -252,6 +257,8 @@ drop  user  'test'@'%';
 
 #### 创建角色和权限分配
 
+> 注意：角色创建为MySQL 8.0支持。
+
 1、创建角色
 
 ````sql
@@ -287,5 +294,299 @@ show grants  for 用户名@主机 using 角色名
 ````sql
 drop role '角色名'
 ````
+
+### 表创建
+
+[MySQL数据类型](https://www.runoob.com/mysql/mysql-data-types.html)
+
+#### 创建管理员表
+
+表结构：
+
+* ID：自增，唯一，主键
+
+* 登录名：varchar
+
+* 密码: varchar
+
+* 角色类型：int(1:管理员，2：二级管理员，3：三级管理员)
+
+* 上一次登录时间：datetime
+
+* 是否被删除：int（1：有效，0：无效）
+
+* 绑定用户名：varchar
+
+* 用户token: varchar
+
+  
+
+SQL语句：
+
+```sql
+create table if not exists t_admin_list
+(
+    admin_id         int unique auto_increment,
+    admin_name         varchar(20)   null comment '登录名',
+    admin_pwd          varchar(100)  null comment '密码',
+    admin_type         int           null comment '管理员角色',
+    admin_last_time    datetime      null comment '上一次登录时间',
+    admin_created_time datetime      null comment '创建时间',
+    admin_is_deleted   int default 0 null comment '是否被删除',
+    admin_login_name   varchar(50)   null comment '用户登录名',
+    admin_token        varchar(100)  null comment '用户token'
+) charset = utf8mb4;
+```
+
+## Express基础
+
+### 环境配置与项目创建
+
+#### Node.js环境安装
+
+1、下载
+
+[下载链接](https://nodejs.org/zh-cn/)
+
+2、安装
+
+安装包下载完成后直接双击安装。
+
+3、测试是否安装成功
+
+终端运行下面的命令：
+
+````bash
+node -v
+````
+
+如果终端显示node版本号，说明安装成功。否则，可能需要配置node的环境变量。
+
+4、查看npm是否安装成功
+
+````bash
+npm -v
+````
+
+5、使用nvm管理node的版本
+
+[nvm下载安装](https://github.com/nvm-sh/nvm)
+
+nvm的基础使用：
+
+````bash
+ # 查看本地的已安装的所有版本的node
+ nvm list
+ # 安装指定版本号的node
+ nvm install 版本号
+ # 安装最新版的node
+ nvm install latest
+ # 卸载指定版本号的node
+ nvm uninstall 版本号
+ # node 切换
+ nvm use 版本号
+ # 切换为默认版本
+ nvm use default 
+ # 查看当前使用的node版本
+````
+
+```bash
+命令 + （-v、-V、--version、-version、version）
+```
+
+#### npm使用指南
+
+##### npm 镜像源配置
+
+查看默认的镜像源：
+
+````bash
+npm config list
+````
+
+临时指定镜像源：
+
+````bash
+npm --registry https://repo.huaweicloud.com/repository/npm/ info express
+````
+
+永久指定镜像源：
+
+````bash
+npm config set registry https://repo.huaweicloud.com/repository/npm/
+````
+
+> <span style='color:red'>注意：修改npm的镜像源可以解决`npm install` 时下载慢的问题。 </span>
+
+##### 创建package.json文件
+
+```bash
+npm init 
+npm init -y
+```
+
+##### npm 安装包
+
+```bash
+npm install 包名 -g  # 全局安装
+npm install 包名  # 本地安装
+npm install 包名@latest #安装最新版本
+
+npm install 包名 --save-dev #安装开发时依赖的包
+npm install 包名 -D #安装开发时依赖的包
+
+npm install 包名 --save #安装运行时依赖的包
+npm install 包名 -S #安装运行时依赖的包
+```
+
+##### 卸载包
+
+```bash
+npm uninstall 包名 
+```
+
+##### 更新包
+
+```bash
+npm update 包名
+npm update 包名@version #更新到指定的版本
+```
+
+##### 查看
+
+```bash
+npm root #查看项目所在目录
+npm root -g #查看全局所在目录
+
+npm view 包名 #查看包的信息
+npm view 包名 dependencies #包的属性
+npm view 包名 repository.url  #包的源码地址
+npm view 报名 engines  #包依赖node的最低版本号
+npm view 包名 version #包的当前版本号
+npm view 包名 versions #包的历史版本号
+npm view 包名 maintainters #包的作者信息
+```
+
+##### 清除未用到的包
+
+```bash
+npm prune
+```
+
+##### 检查
+
+```bash
+npm outdated #检查所有包是否过时
+```
+
+##### 打开与包相关的网址
+
+```bash
+npm home 包名 #包的主页
+npm docs 包名 #包的文档页面
+npm repo 包名 #包的仓库地址
+```
+
+##### 查看全局安装的模块
+
+```bash
+npm list -g --depth=0
+```
+
+##### 清除缓存
+
+```bash
+npm cache clean --force
+```
+
+##### 自动配置国区镜像
+
+```bash
+npm install -g mirror-config-china
+```
+
+#### express脚手架安装
+
+1、安装express脚手架：
+
+````bash
+npm install -g express-generator
+````
+
+2、查看express脚手架是否安装成功
+
+````bash
+express --version
+````
+
+3、使用脚手架创建项目
+
+````bash
+express 项目名
+````
+
+#### express初始项目介绍
+
+目录介绍：
+
+app.js : 项目入口
+
+packages.json:包信息管理文件
+
+routes: 存放接口路由文件
+
+views:存放视图相关文件
+
+bin: 项目的运行命令存放路径
+
+#### 项目运行与实时更新
+
+##### 运行项目
+
+1、到项目的根目录下：
+
+2、安装项目依赖包:
+
+````bash
+npm install 
+````
+
+3、运行项目：
+
+````bash
+npm run start
+````
+
+4、浏览器测试
+
+##### 实时更新配置
+
+1、全局安装nodemon
+
+````bash
+npm install -g nodemon
+````
+
+2、项目配置
+
+打开package.json文件:
+
+将
+
+````json
+"start": "node ./bin/www"
+````
+
+修改为：
+
+````json
+"start": " nodemon ./bin/www"
+````
+
+配置好实时更新之后，每次保存项目后，都会自动进行更新和同步，无须重新运行。
+
+##### nodemon 相关
+
+[nodemon 官网](https://github.com/remy/nodemon) 
 
 ### 
