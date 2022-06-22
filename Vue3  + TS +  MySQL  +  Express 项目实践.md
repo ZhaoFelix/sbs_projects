@@ -589,4 +589,239 @@ npm install -g nodemon
 
 [nodemon 官网](https://github.com/remy/nodemon) 
 
-### 
+### 连接数据库
+
+#### 安装依赖
+
+````bash
+npm install -d mysql
+````
+
+> [mysql](https://github.com/mysqljs/mysql)
+
+#### 创建MySQL连接
+
+1、创建env.js文件存储数据库信息：
+
+```js
+let dev = {
+  dbInfo: {
+    // 连接数
+    connectionLimit: 200,
+    // 主机地址
+    host: 'localhost',
+    // 用户
+    user: 'root',
+    // 密码
+    password: 'Qing_Mao1234',
+    // 数据库
+    database: 'qingmao',
+    // 是否可以使用旧的连接方式进行连接，默认为FALSE
+    insecureAuth: true
+  }
+}
+
+module.exports = {
+  dev
+}
+```
+
+2、创建连接
+
+```js 
+let mysql = require('mysql')
+const env = require('./env')
+// 创建一个连接池
+let pool = mysql.createPool(env.dev.dbInfo)
+
+//数据库查询，查询时的默认参数为空
+function queryDB(sql, params = '1', callback) {
+  pool.getConnection(function (err, connection) {
+    if (err) {
+      console.log('连接失败' + err)
+    } else {
+      connection.query(sql, params, function (err, results, fields) {
+        if (err) {
+          console.log('查询失败' + err)
+          connection.release() //释放连接
+          // throw err
+        }
+
+        //将查询出来的结果返回给回调函数
+        callback(err, results, fields)
+      })
+      //查询结束后释放连接池，等待待别的连接池使用
+      pool.releaseConnection(connection)
+    }
+  })
+}
+
+module.exports = {
+  queryDB
+}
+```
+
+3、验证是否连接成功
+
+在`routes/index.js`中测试数据连接是否成功：
+
+````js
+const DB = require('../config/db')
+
+router.get('/', function (req, res, next) {
+  DB.queryDB('select  * from user_t;', function (error, results, fields) {
+    if (error) {
+      console.log('数据库连接失败，ERROR:' + error)
+    } else {
+      console.log('数据库连接成功，RESULTS:' + results)
+    }
+  })
+  res.render('index', { title: 'Express' })
+})
+````
+
+4、将查询的结果以json的格式进行响应
+
+````js
+let responseJSON = {
+        code: 200,
+        message: 'success',
+        data: results
+      }
+res.send(responseJSON)
+````
+
+> 注意： 不能有多个响应，所以需要注释掉底部的渲染。
+
+### 封装响应类
+
+````js
+const { response_options } = require('../config/env')
+class Result {
+  // 构造函数
+  constructor(data, message = '操作成功', options) {
+    this.data = null
+    if (arguments.length === 0) {
+      this.message = '操作成功'
+    } else if (arguments.length === 1) {
+      this.message = data
+    } else {
+      this.data = data
+      this.message = message
+      if (options) {
+        this.options = options
+      }
+    }
+  }
+
+  createResult() {
+    if (!this.code) {
+      this.code = response_options.CODE_SUCCESS
+    }
+    let base = {
+      code: this.code,
+      message: this.message
+    }
+    if (this.data) {
+      base.data = this.data
+    }
+    if (this.options) {
+      base = { ...base, ...this.options }
+    }
+    return base
+  }
+  // json
+  json(res) {
+    res.json(this.createResult())
+  }
+  // 成功
+  success(res) {
+    this.code = response_options.CODE_SUCCESS
+    this.json(res)
+  }
+  // 失败
+  fail(res) {
+    this.code = response_options.CODE_ERROR
+    this.json(res)
+  }
+
+  // JWT认证
+  jwtError(res) {
+    this.code = 401
+    this.json(res)
+  }
+}
+
+module.exports = Result
+````
+
+在`config/env.js`中添加响应码：
+
+````js
+let response_options = {
+  CODE_ERROR: 20002,
+  CODE_SUCCESS: 20000
+}
+````
+
+在`routes/index.js`中使用：
+
+引入定义好的响应类模块，将之前自定义的响应对象和响应替换为下面的代码：
+
+````js
+new Result(results, 'success').success(res)
+````
+
+### get&post 请求
+
+新建一个`routes/admin.js`文件，将查询所有管理员的接口移植到这个文件中：
+
+```js
+// 管理员相关接口
+
+var express = require('express')
+var router = express.Router()
+const DB = require('../config/db')
+const Result = require('../config/result')
+
+// 查询所有的管理员
+router.get('/query/all', function (req, res, next) {
+  DB.queryDB('select  * from t_admin_list;', function (error, results, fields) {
+    if (error) {
+      new Result([], 'error', { error: error }).fail(res)
+    } else {
+      new Result(results, 'success', { length: 12 }).success(res)
+    }
+  })
+})
+
+module.exports = router
+```
+
+> 注意：在路由文件夹下新建一个文件时，需要在`app.js`文件中进行路由注册。
+
+使用**post**请求实现管理员的添加：
+
+```js
+// 添加管理员
+router.post('/add/one', function (req, res, next) {
+  const admin = req.body
+  // 对象解析
+  const { admin_name, admin_type, admin_login_name, admin_pwd, admin_token } =
+    admin
+  DB.queryDB(
+    'insert t_admin_list(admin_name, admin_pwd, admin_type, admin_login_name, admin_token, admin_created_time)value(?, ?, ?, ?,now());',
+    [admin_name, admin_pwd, admin_type, admin_login_name, admin_token],
+    function (error, results, fields) {
+      if (error) {
+        new Result('添加失败', error).fail(res)
+      } else {
+        new Result(results, '添加成功').success(res)
+      }
+    }
+  )
+})
+```
+
+> **post**请求无法再浏览器总直接获取结果，需要在接口工具中进行测试。
+
