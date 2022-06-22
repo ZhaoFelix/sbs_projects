@@ -10,6 +10,7 @@ function queryDB(sql, params = '1', callback) {
       connection.query(sql, params, function (err, results, fields) {
         if (err) {
           console.log('查询失败，error:' + err)
+          callback(err)
           connection.release()
         } else {
           callback(err, results, fields)
