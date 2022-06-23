@@ -825,3 +825,355 @@ router.post('/add/one', function (req, res, next) {
 
 > **post**请求无法再浏览器总直接获取结果，需要在接口工具中进行测试。
 
+
+
+### 通用处理
+
+#### 批量自动导入接口
+
+批量导入的工具函数：
+
+```javascript
+// helper.js
+// 自动路由相关
+const fs = require('fs')
+const path = require('path')
+const { route } = require('../routes')
+/**
+ * 将文件名更改为前缀
+ * **/
+function transform(filename) {
+  return (
+    filename
+      .slice(0, filename.lastIndexOf('.'))
+      // 分隔符转换
+      .replace(/\\/g, '/')
+      // 去除index
+      .replace('/index', '/')
+      // 路径头部/修正
+      .replace(/^[/]*/, '/')
+      // 路径尾部/修正
+      .replace(/[/]*$/, '')
+  )
+}
+
+/**
+ * 文件路径转换为模块名，同时去掉.js后缀
+ * @param {any} rootDir 模块入口
+ * @param {any} excludeFile 要排除的入口文件
+ * @returns
+ * **/
+exports.scanDirModules = function scanDirModules(rootDir, excludeFile) {
+  if (!excludeFile) {
+    // 默认的路口文件为目录下的index.js
+    excludeFile = path.join(rootDir, 'index.js')
+  }
+  // 模块集合
+  const modules = {}
+  // 获取目录下的第一级子文件
+  let filenames = fs.readdirSync(rootDir)
+  while (filenames.length) {
+    // 获取相对路径
+    const relativeFilePath = filenames.shift()
+    // 获取绝对路径
+    const absFilePath = path.join(rootDir, relativeFilePath)
+    // 排除入口文件
+    if (absFilePath == excludeFile) {
+      continue
+    }
+    if (fs.statSync(absFilePath).isDirectory()) {
+      // 如果是文件夹的情况下，读取子目录下的目录文件，然后添加到路由文件队列中
+      const subFiles = fs
+        .readdirSync(absFilePath)
+        .map((v) => path.join(absFilePath.replace(rootDir, ''), v))
+      filenames = filenames.concat(subFiles)
+    } else {
+      // 如果是文件的情况下，将文件路径转换为路由前缀，添加路由前缀和路由模块到模块集合中
+      const prefix = transform(relativeFilePath)
+      modules[prefix] = require(absFilePath)
+    }
+  }
+  return modules
+}
+```
+
+在`routes/index.js`文件自动扫描路由：
+
+```javascript
+const helper = require('../utils/helper')
+// 扫描路由路径，自动导入接口路由
+const scanResult = helper.scanDirModules(__dirname, __filename)
+for (const prefix in scanResult) {
+  if (scanResult.hasOwnProperty(prefix)) {
+    router.use(prefix, scanResult[prefix])
+  }
+}
+```
+
+新建任意一个路由进行测试。
+
+```js
+/admin   --> routes/admin.js
+/users  ---> routes/users.js
+/pc/admin/admin --> /pc/admin/admin.js
+/pc/admin ---> /pc/admin/admin/index.js
+/pc/order ---> /pc/order/index.js
+```
+
+#### 404接口处理
+
+安装依赖：
+
+```bash
+npm install -s boom 
+```
+
+[boom官网](https://hapi.dev/module/boom/)
+
+在`routes/index.js`文件中：
+
+```javascript
+// 集中处理404
+router.use((err, res, next) => {
+  next(boom.notFound('接口不存在'))
+})
+
+/*
+自定义路由处理异常中间件
+注意：
+这个中间件必须放在路由的最后面。
+*/
+router.use((err, req, res, next) => {
+  const msg = (err && err.message) || '系统错误'
+  const statusCode = (err.output && err.output.statusCode) || 500
+  const errorMsg =
+    (err.output && err.output.payload && err.output.payload.error) ||
+    err.message
+  new Result(null, msg, {
+    statusCode: statusCode,
+    errorMsg
+  }).fail(res.status(statusCode))
+})
+```
+
+### 接口创建
+
+#### 使用Promise优化数据库查询
+
+```javascript
+//数据库查询，查询时的默认参数为空
+function queryDB(sql, params = '1') {
+  return new Promise((resolve, reject) => {
+    pool.getConnection(function (err, connection) {
+      if (err) {
+        reject('连接失败，error:' + err)
+      } else {
+        connection.query(sql, params, function (err, results) {
+          if (err) {
+            reject('查询失败，error:' + err)
+          }
+          //将查询出来的结果返回给回调函数
+          resolve(results)
+        })
+        //查询结束后释放连接池，等待别的连接池使用
+        pool.releaseConnection(connection)
+      }
+    })
+  })
+}
+```
+
+对默认的验证接口进行更改：
+
+```javascript
+router.get('/', function (req, res, next) {
+  DB.queryDB('select  * from user_t;')
+    .then((data) => {
+      new Result(data, 'success').success(res)
+    })
+    .catch((error) => {
+      new Result(error, 'error').fail(res)
+    })
+})
+```
+
+[使用Promise](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Using_promises)
+
+#### 管理员相关
+
+在`service`文件夹下创建`admin.js`文件用来实现管理员相关的逻辑代码。
+
+##### 添加
+
+在`service/admin.js`文件中添加管理员的添加逻辑：
+
+```js
+const DB = require('../config/db')
+
+// 查询所有管理员
+function queryAllAdmin() {
+  return DB.queryDB('select  * from t_admin_list;')
+}
+
+// 添加管理员
+function addOneAdmin(admin) {
+  const { admin_name, admin_type, admin_login_name, admin_pwd, admin_token } =
+    admin
+  return DB.queryDB(
+    'insert t_admin_list(admin_name, admin_pwd, admin_type, admin_login_name, admin_token, admin_created_time) value(?, ?, ?, ?, ?,now());',
+    [admin_name, admin_pwd, admin_type, admin_login_name, admin_token]
+  )
+}
+
+// 判断登录名是否已经存在
+function isExistAdmin(admin_login_name) {
+  return DB.queryDB(
+    'select  * from t_admin_list where  admin_login_name = ?;',
+    [admin_login_name]
+  )
+}
+
+// 删除管理员
+function deleteAdmin(admin_id) {
+  return DB.queryDB(
+    'update t_admin_list set admin_is_deleted = 1 where  admin_id = ? and admin_is_deleted = 0;',
+    [admin_id]
+  )
+}
+
+module.exports = {
+  queryAllAdmin,
+  addOneAdmin,
+  isExistAdmin,
+  deleteAdmin
+}
+```
+
+> 使用**对象解析**可以快速将对象进行解析，快速获取对象成员。但是要注意解析是的常量或变量名要和对象中的键名一致。
+
+在接口`routes/admin/index.js`中实现post接口：
+
+```javascript
+const {
+  queryAllAdmin,
+  addOneAdmin,
+  isExistAdmin,
+  deleteAdmin
+} = require('../service/admin')
+
+// 查询所有的管理员
+router.get('/query/all', function (req, res, next) {
+  queryAllAdmin()
+    .then((data) => {
+      new Result(data, 'success', { length: 12 }).success(res)
+    })
+    .catch((error) => {
+      new Result([], 'error', { error: error }).fail(res)
+    })
+})
+
+// 添加管理员
+router.post('/add', function (req, res, next) {
+  const admin = req.body
+  adminService
+    .addAdmin(admin)
+    .then((data) => {
+      return new Result('success').success(res)
+    })
+    .catch((error) => {
+      return new Result(error, '添加失败').fail(res)
+    })
+})
+```
+
+> 注意：添加成功后到数据库中进行查询验证。
+
+完善逻辑，避免添加重复用户：
+
+`service/admin.js`:
+
+```javascript
+function isExistAdmin(login_name) {
+  console.log(login_name)
+  return DB.queryDB(
+    'select  admin_id from t_admin_list where  admin_login_name = ?',
+    [login_name]
+  )
+}
+```
+
+````javascript
+router.post('/add', function (req, res, next) {
+  const admin = req.body
+  adminService
+    .isExistAdmin(admin.admin_login_name)
+    .then((data) => {
+      if (data.length != 0) {
+        return new Result('登录名重复').fail(res)
+      } else {
+        adminService
+          .addAdmin(admin)
+          .then((result) => {
+            return new Result('添加成功').success(res)
+          })
+          .catch((error) => {
+            return new Result(error, '添加失败').fail(res)
+          })
+      }
+    })
+    .catch((error) => {
+      return new Result(error, '添加失败').fail(res)
+    })
+})
+````
+
+##### 删除
+
+`service/admin.js`:
+
+```javascript
+// 删除管理员
+function deleteAdmin(admin_id) {
+  return DB.queryDB(
+    'update t_admin_list set admin_is_deleted = 1 where  admin_id = ?',
+    admin_id
+  )
+}
+```
+
+`routes/admin/index.js`:
+
+```javascript
+const url = require('url')
+
+router.get('/delete', function (req, res, next) {
+  let parseObj = url.parse(req.url, true)
+  let admin_id = parseObj.query.admin_id
+   deleteAdmin(admin_id)
+    .then((data) => {
+      return new Result('删除成功').success(res)
+    })
+    .catch((error) => {
+      return new Result(error, '删除失败').fail(res)
+    })
+})
+```
+
+> 注意：这里传值我们使用的`get`请求中的路由传参。
+
+`get`请求使用body传值的处理方法：
+
+```javascript
+// 删除管理员
+router.get('/delete', function (req, res, next) {
+  const { admin_id } = req.body
+    deleteAdmin(admin_id)
+    .then((data) => {
+      return new Result('删除成功').success(res)
+    })
+    .catch((error) => {
+      return new Result(error, '删除失败').fail(res)
+    })
+})
+```
+
