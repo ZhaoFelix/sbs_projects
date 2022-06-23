@@ -3,20 +3,21 @@ const env = require('./env')
 let pool = mysql.createPool(env.dev.dbInfo)
 
 function queryDB(sql, params = '1', callback) {
-  pool.getConnection(function (err, connection) {
-    if (err) {
-      console.log('连接创建失败，error:' + err)
-    } else {
-      connection.query(sql, params, function (err, results, fields) {
-        if (err) {
-          console.log('查询失败，error:' + err)
-          callback(err)
-          connection.release()
-        } else {
-          callback(err, results, fields)
-        }
-      })
-    }
+  return new Promise((resolve, reject) => {
+    pool.getConnection(function (error, connection) {
+      if (error) {
+        reject('连接失败，error:' + error)
+      } else {
+        connection.query(sql, params, function (error, results) {
+          if (error) {
+            reject('查询失败，error:' + error)
+          } else {
+            resolve(results)
+          }
+        })
+        pool.releaseConnection(connection)
+      }
+    })
   })
 }
 
