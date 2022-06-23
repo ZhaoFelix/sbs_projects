@@ -6,9 +6,7 @@ var logger = require('morgan')
 
 // 导入路由文件
 var indexRouter = require('./routes/index')
-var usersRouter = require('./routes/users')
 var adminRouter = require('./routes/admin')
-
 var app = express()
 
 // 设置视图引擎
@@ -24,9 +22,6 @@ app.use(express.static(path.join(__dirname, 'public')))
 // 注册路由
 // ip:端口号 + 路由
 app.use('/', indexRouter)
-app.use('/users', usersRouter)
-app.use('/admin', adminRouter)
-
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404))
