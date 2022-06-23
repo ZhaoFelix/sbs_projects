@@ -22,8 +22,17 @@ function isExistAdmin(admin_login_name) {
     [admin_login_name]
   )
 }
+
+// 删除管理员
+function deleteAdmin(admin_id) {
+  return DB.queryDB(
+    'update t_admin_list set admin_is_deleted = 1 where  admin_id = ? and admin_is_deleted = 0;',
+    [admin_id]
+  )
+}
 module.exports = {
   queryAllAdmin,
   addOneAdmin,
-  isExistAdmin
+  isExistAdmin,
+  deleteAdmin
 }
