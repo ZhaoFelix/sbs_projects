@@ -22,6 +22,7 @@ app.use(express.static(path.join(__dirname, 'public')))
 // 注册路由
 // ip:端口号 + 路由
 app.use('/', indexRouter)
+
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404))

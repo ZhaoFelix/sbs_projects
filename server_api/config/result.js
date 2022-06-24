@@ -58,6 +58,10 @@ class Result {
   }
 
   // TODO: JWT认证失败
+  jwtError(res) {
+    this.code = 401
+    this.json(res)
+  }
 }
 
 module.exports = Result

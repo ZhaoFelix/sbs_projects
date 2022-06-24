@@ -1,0 +1,55 @@
+{
+  "swagger":"2.0",
+  "info": {
+    "version":"1.0.0",
+    "title": "后端接口项目",
+    "description":"express创建的接口项目",
+    "license": {
+
+    }
+  },
+  "host": "localhost:8000",
+  "basePath":"/",
+  "tags": [
+    {
+      "name":"admin",
+      "description":"管理员相关"
+    }
+  ],
+  "schemes": ["http"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "paths": {
+    "admin/add/one": {
+      "get": {
+        "tags":["admin"],
+        "summary":"添加管理员",
+        "responses": {
+          "200": {
+            "description": "ok",
+            "schema": {
+              "$ref": "#/definitions/Admin"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Admin": {
+      "required": ["admin_name",
+      "admin_pwd","admin_type"],
+      "properties": {
+        "admin_name":{
+          "type":"string"
+        },
+        "admin_pwd":{
+          "type":"string"
+        },
+        "admin_type": {
+          "type":"number"
+        }
+      }
+    }
+  }
+}

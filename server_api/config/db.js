@@ -1,8 +1,9 @@
 const mysql = require('mysql')
 const env = require('./env')
-let pool = mysql.createPool(env.dev.dbInfo)
+// let pool = mysql.createPool(env.dev.dbInfo)
 
-function queryDB(sql, params = '1', callback) {
+let pool = mysql.createConnection(env.dev.dbInfo)
+function queryDB(sql, params = '1') {
   return new Promise((resolve, reject) => {
     pool.getConnection(function (error, connection) {
       if (error) {
