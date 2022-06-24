@@ -24,16 +24,23 @@ router.use((err, res, next) => {
 
 // 中间件
 router.use((err, req, res, next) => {
-  // 三目运算符 条件 ? true : false
-  const msg = (err && err.message) || '系统错误'
-  const statusCode = (err.output && err.output.statusCode) || 500
-  const errorMsg =
-    (err.output && err.output.payload && err.output.payload.error) ||
-    err.message
-  new Result(null, msg, {
-    statusCode: statusCode,
-    errorMsg
-  }).fail(res.status(statusCode))
+  if (err.name && err.name === 'UnauthorizedError') {
+    const { status = 401, message } = err
+    new Result(null, 'token失效', {
+      error: status,
+      errorMsg: message
+    }).jwtError(res.status(status))
+  } else {
+    const msg = (err && err.message) || '系统错误'
+    const statusCode = (err.output && err.output.statusCode) || 500
+    const errorMsg =
+      (err.output && err.output.payload && err.output.payload.error) ||
+      err.message
+    new Result(null, msg, {
+      error: statusCode,
+      errorMsg
+    }).fail(res.status(statusCode))
+  }
 })
 
 module.exports = router
