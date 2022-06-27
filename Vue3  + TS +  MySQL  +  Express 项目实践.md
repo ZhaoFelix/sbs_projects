@@ -1177,3 +1177,441 @@ router.get('/delete', function (req, res, next) {
 })
 ```
 
+## Vue3 + TS
+
+### TS、ES和JS
+
+ES是JS的标准，TS是JS的超集。TS为JS提供了类型系统。
+
+### 安装TypeScript编译器
+
+````bash
+npm install -g typescript
+````
+
+### 将TS文件编译为JS文件
+
+#### 单个文件编译
+
+1、创建一个`index.ts`文件：
+
+````typescript
+class Student {
+  name:string;
+  age: number;
+}
+
+let s1 = new Student()
+s1.name = 'Felix'
+s1.age = 23
+````
+
+2、将ts文件编译为js文件：
+
+````bash
+tsc index.ts
+# 监控ts的变化进行实时的编译
+tsc indx.ts -w 
+````
+
+编译后生成同名的`index.js`文件:
+
+```js
+var Student = /** @class */ (function () {
+  function Student() {}
+  return Student
+})()
+var s1 = new Student()
+s1.name = 'Felix'
+s1.age = 23
+```
+
+> 通过编译后的js文件发现，在js中 ，对`age`和`name`属性没有明确数据类型，在赋值使用时容易发生类型不匹配的问题，但是这种问题只有在js的运行阶段才会被发现。相反，因为TS明确了数据类型，而且如果赋值时数据类型不匹配，将会在编译阶段发生报错。
+
+#### 使用tsconfig.json配置文件编译
+
+在目录下运行下面的命令，生成`tsconfig.json`文件：
+
+````bash
+tsc --init
+````
+
+`tsconfig.json`的一些基础配置：
+
+```json
+{
+  // 指明要编译的一个或多个文件
+  "files": ["src/index.ts"],
+  // 指明要被编译的文件或文件夹
+  "include": [
+    "src"
+  ],
+  // 指明不需要被编译的文件或文件夹
+  "exclude": [],
+   // 编译选项
+  "compilerOptions": {
+    // 编译后指定的ES版本
+    "target": "ES5",
+    // 编译后的模块化方案，none, commonjs, amd, system, umd, es20215, es2020 或者ESNext
+    "module": "none",
+    // 指定编译后的输出目录
+    "outDir": "./dist"
+  }
+}
+```
+
+> 在有`tscofig.json`文件的时候，可以直接在项目目录下运行`tsc`编译目录下所有的ts文件 ，无须再指定专门的js文件。
+
+#### tsconfig.json配置全解析
+
+```json
+{
+  "compilerOptions": {
+    /* 基本选项 */
+    "target": "es6", // 指定 ECMAScript 目标版本: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', or 'ESNEXT'
+    "module": "commonjs", // 指定使用模块: 'commonjs', 'amd', 'system', 'umd' or 'es2015'
+    "lib": [], // 指定要包含在编译中的库文件
+    "allowJs": true, // 允许编译 javascript 文件
+    "checkJs": true, // 报告 javascript 文件中的错误
+    "jsx": "preserve", // 指定 jsx 代码的生成: 'preserve', 'react-native', or 'react'
+    "declaration": true, // 生成相应的 '.d.ts' 文件
+    "declarationDir": "./dist/types", // 生成的 '.d.ts' 文件保存文件夹
+    "sourceMap": true, // 生成相应的 '.map' 文件
+    "outFile": "./", // 将输出文件合并为一个文件
+    "outDir": "./dist", // 指定输出目录
+    "rootDir": "./", // 用来控制输出目录结构 --outDir.
+    "removeComments": true, // 删除编译后的所有的注释
+    "noEmit": true, // 不生成输出文件
+    "importHelpers": true, // 从 tslib 导入辅助工具函数
+    "isolatedModules": true, // 将每个文件做为单独的模块 （与 'ts.transpileModule' 类似）.
+
+    /* 严格的类型检查选项 */
+    "strict": true, // 启用所有严格类型检查选项
+    "noImplicitAny": true, // 在表达式和声明上有隐含的 any类型时报错
+    "strictNullChecks": true, // 启用严格的 null 检查
+    "noImplicitThis": true, // 当 this 表达式值为 any 类型的时候，生成一个错误
+    "alwaysStrict": true, // 以严格模式检查每个模块，并在每个文件里加入 'use strict'
+
+    /* 额外的检查 */
+    "noUnusedLocals": true, // 有未使用的变量时，抛出错误
+    "noUnusedParameters": true, // 有未使用的参数时，抛出错误
+    "noImplicitReturns": true, // 并不是所有函数里的代码都有返回值时，抛出错误
+    "noFallthroughCasesInSwitch": true, // 报告switch语句的fallthrough错误。（即，不允许switch的case语句贯穿）
+
+    /* 模块解析选项 */
+    "moduleResolution": "node", // 选择模块解析策略： 'node' (Node.js) or 'classic' (TypeScript pre-1.6)
+    "baseUrl": "./", // 用于解析非相对模块名称的基础目录
+    "paths": {}, // 模块名到基于 baseUrl 的路径映射的列表
+    "rootDirs": [], // 根文件夹列表，其组合内容表示项目运行时的结构内容
+    "typeRoots": [], // 包含类型声明的文件列表
+    "types": [], // 需要包含的类型声明文件名列表
+    "allowSyntheticDefaultImports": true, // 允许从没有设置默认导出的模块中默认导入。
+    "esModuleInterop": true, // 支持合成模块的默认导入
+  
+    /* Source Map Options */
+    "sourceRoot": "./", // 指定调试器应该找到 TypeScript 文件而不是源文件的位置
+    "mapRoot": "./", // 指定调试器应该找到映射文件而不是生成文件的位置
+    "inlineSourceMap": true, // 生成单个 soucemaps 文件，而不是将 sourcemaps 生成不同的文件
+    "inlineSources": true, // 将代码与 sourcemaps 生成到一个文件中，要求同时设置了 --inlineSourceMap 或 --sourceMap 属性
+
+    /* 其他选项 */
+    "experimentalDecorators": true, // 启用装饰器
+    "emitDecoratorMetadata": true // 为装饰器提供元数据的支持
+  },
+  /* 指定编译文件或排除指定编译文件 */
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts"],
+  "files": ["index.ts", "test.ts"],
+  // 从另一个配置文件里继承配置
+  "extends": "@tsconfig/recommended",
+  // 让 IDE 在保存文件的时候根据 tsconfig.json 重新生成文件
+  "compileOnSave": true // 支持这个特性需要Visual Studio 2015， TypeScript 1.8.4 以上并且安装 atom-typescript 插件
+}
+```
+
+### TS基础
+
+#### TS 优势
+
+* 类型推演与类型匹配
+* 开发编译时报错
+* 支持最新的ES6/7/8
+* 减少低级错的发发生
+
+快速将一个字符串数字转换为数字：
+
+```typescript
+const num = '0'
+console.log(+num)
+
+console.log(+'1' + 2) // 输出为3
+```
+
+#### TypeScript的工作流程
+
+TS 通过`tsc`编译器转换成浏览器能执行的JS。目前，浏览器只支持到**ES5**。
+
+#### 变量声明
+
+TS中有`const`,`let`,`var`三种，我们应该尽可能的避免使用`var`进行声明。
+
+```typescript
+var number1 = 1
+let number2 = 2
+const number3 = 3
+
+function doSomething() {
+  for (var i=0;i<5;i++) {
+    console.log(i)
+  }
+  console.log('finally i =',i) // finally i = 5
+}
+```
+
+> **ES6**中的`var` 存在作用域混乱的问题。
+
+将上面的代码改为：
+
+```typescript
+function doSomething() {
+  for (let i=0;i<5;i++) {
+    console.log(i)
+  }
+  console.log('finally i =',i) // 报错，提示i无法被找到
+}
+```
+
+#### TS中的基本类型
+
+* boolean 
+* array
+* null
+* void 
+* string 
+* tuple 
+* undified
+* never
+* number
+* enum 
+* object
+* any
+
+#### TS  中的高级类型
+
+* union 组合类型
+* Nullable 可空类型
+* Literal 预定义类型
+
+##### 数组
+
+```typescript
+// 数组的三种定义
+let list: number[] =[1, 2, 3]
+let array:Array<number> = [1, 2, 3]
+let list3 = [1, 2, 3]
+
+// 数组支持存放多种类型的数据
+let list4 = [1, '2'] // 只能存放数字和字符串
+let list5:any[] = [1, '2'] // 可以存放任意类型的数据
+```
+
+##### 元组
+
+```typescript
+// 固定长度和类型的元组
+let person1: [number, string] = [1, 'Felix']
+person1[0] = '2' // 类型不正确
+person1[1] = 1 // 类型不正确
+person1[2] = 2 // 长度不正确
+```
+
+> 元组是特殊类型的数组。<span style="color:red">元组的声明必须指定类型</span>。
+
+##### Union与Literal  类型
+
+```typescript
+let union : string | number // 这是一个同时支持String和number类型的union
+union = 2
+union = 'we'
+
+let union2 = string | number | boolean | string[]
+
+// 确定取值范围的联合
+let union3: 2 | 3 | 4
+union3 = 1 // 报错，超出可赋值的范围
+
+let literal: 2 | 'we' | [1, 5, 3]
+```
+
+#####  枚举
+
+```typescript
+enum Color {
+  red,
+  green,
+  blue
+}
+let color = Color.red
+console.log(color) // 2，表示枚举中red的索引
+```
+
+##### any 和 unknown
+
+```typescript
+let randomVlaue:any = 666
+randomValue = true
+randomValue = 'we'
+randomValue = {}
+```
+
+##### void、undified与Never
+
+```typescript
+function printResult() : void {
+  console.log('指定函数的返回值为void')
+}
+
+function throwError(message: string, errorCode: number) : never {
+  throw {
+    message,
+    errorCode
+  }
+}
+```
+
+#### 类型适配
+
+```typescript
+let message:any = 'absc'
+// 将开始申明为any类型的变量转换为明确的String类型
+// 方法一
+(<string>message).endWitch('c')
+// 方法二
+(message as string).endWith('c')
+```
+
+#### 函数类型
+
+```typescript
+// 函数定义的几种方法
+
+let log = function(message) {
+  console.log(,essage)
+}
+
+let log2 = (message: string) => console.log(message)
+
+// 可选参数，函数调用是可不填
+let log3 = (message: string. code?: number) => {
+  console.log(message, code)
+}
+
+// 给函数参数设置默认值
+let log4 = (message: string. code: number = 0) => {
+  console.log(message, code)
+}
+
+```
+
+> 可选参数和默认参数必须位于函数参数列表的末尾。否则函数将报错。
+
+
+
+#### object 对象类型
+
+````typescript
+const person = {
+  firstName: 'Felix',
+  lastName: 'Zhao',
+  age:23
+}
+// 访问对象中不存在的属性，JS不会报错，TS会报错
+console.loh(person.nickName)
+
+````
+
+#### 接口
+
+````typescript
+let drawPoit =  (point:Point) => {
+  console.log(point.x, point.y)
+}
+console.log(drawPint({x:12, y:34}))
+
+interface Point {
+  x: number;
+  y: number;
+}
+````
+
+#### 类
+
+````typescript
+interface IPoint {
+  x:number;
+  y:number;
+  drawPoint: () => void;
+  getDistances: (point: IPoint) => number
+}
+
+class Point implements IPoint {
+  x: number;
+  y: number;
+  // 构造函数，参数可选
+  constructor(public x?: number, public y?:number) {
+    this.x = x 
+    this.y = y 
+  }
+  drawPoint = () => {
+    console.log(x, y)
+  }
+  getDistances = (p: IPoint) => {
+    console.log(p.x - this.x, p.y - this.y)
+  }
+}
+
+const point = new Point()
+
+````
+
+#### 访问修饰符
+
+```typescript
+class Point implements IPoint {
+  constructor(public x?: number, public y?:number) {
+  }
+  drawPoint = () => {
+    console.log(x, y)
+  }
+  getDistances = (p: IPoint) => {
+    console.log(p.x - this.x, p.y - this.y)
+  }
+  // 给x添加读写访问修饰
+  set X(value:number) {
+    if (value < 0) {
+      throw new Error('value 不能小于0')
+    }
+    this.x = value
+  }
+  
+  get X() {
+    return this.x
+  }
+}
+
+```
+
+#### 泛型
+
+```typescript
+let lastInArray = <T>(arr: T[]) => {
+  retutn arr[arr.length - 1]
+}
+
+let makeTuple = <T, Y>[x: T, y: Y] = [x, y]
+
+// 设置泛型的默认类型
+let makeTuple = <T, Y = numbber>[x: T, y: Y] = [x, y]
+```
+
+#### 
