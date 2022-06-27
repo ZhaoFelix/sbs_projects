@@ -3,7 +3,7 @@
   "include": ["src"],
   "exclude": [],  
   "compilerOptions": {
-    "target": "ES5",
+    "target": "ES6",
     // none, commonjs, amd, es2015,ESNext
     "module": "none",
     "outDir": "./js"

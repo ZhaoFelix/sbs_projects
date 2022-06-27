@@ -7,10 +7,10 @@ let num2 = 2
 const num3 = 3
 
 function doThing(){
-  for (let i=0;i<5;i++) {
+  for (var i=0;i<5;i++) {
     console.log(i)
   }
 
-  console.log("当前的i值为：")
+  console.log("当前的i值为："+i)
 }
 doThing()
