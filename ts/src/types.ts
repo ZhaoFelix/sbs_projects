@@ -74,13 +74,13 @@ function total(): 1 | 2 | 3 | 4 | 5 {
 }
 
 // 函数类型
-let doAnything= function() {
+let doAnything = function() {
 
 }
 let doAnything2: () => void
 let doAnything3 = () => {}
 
-let doAnything4 = () => console.log('一行代码')
+let doAnything4 = () => 1 // console.log('一行代码')
 
 doAnything4()
 
@@ -91,6 +91,9 @@ let doAnything5 = function(message: string | boolean = "默认值") {
 }
 doAnything5(true)
 
+
+let num4 = 5
+//num4 = '5'
 
 let person1: {
   name: string,
@@ -181,8 +184,13 @@ let lastArr = <T>(arr: T[]) => {
 
 console.log(lastArr([1, 2, 3,]))
 console.log(lastArr(['1', '2', '3']))
+console.log(lastArr(['1', 2, '3']))
 
 
 let lastAr = (arr: any[]) => {
   return arr[arr.length - 1]
 }
+
+console.log(lastAr([1, 2, 3,]))
+console.log(lastAr(['1', '2', '3']))
+console.log(lastAr(['1', 2, '3']))

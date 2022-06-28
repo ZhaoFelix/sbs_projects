@@ -10,7 +10,6 @@ function doThing(){
   for (var i=0;i<5;i++) {
     console.log(i)
   }
-
   console.log("当前的i值为："+i)
 }
 doThing()
