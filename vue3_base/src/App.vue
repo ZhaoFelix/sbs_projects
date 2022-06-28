@@ -1,18 +1,30 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
+  <div>
+    <button @click="minus">-</button>
+    <span>{{ counter }}</span>
+    <button @click="add">+</button>
+  </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import HelloWorld from './components/HelloWorld.vue';
+<script lang="ts" setup>
+import { ref, unref, isRef } from 'vue'
+// let counter = ref<number>(0)
+let counter = 0
 
-export default defineComponent({
-  name: 'App',
-  components: {
-    HelloWorld
-  }
-});
+let minus = () => {
+  // counter.value -= 1
+  // console.log(unref(counter))
+  console.log(isRef(counter) ? counter.value : counter)
+}
+
+let add = () => {
+  counter.value += 1
+}
+
+function getData() {
+  console.log('获取数据')
+}
+getData()
 </script>
 
 <style>
