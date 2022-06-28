@@ -58,13 +58,15 @@ let doAnything = function () {
 };
 let doAnything2;
 let doAnything3 = () => { };
-let doAnything4 = () => console.log('一行代码');
+let doAnything4 = () => 1; // console.log('一行代码')
 doAnything4();
 // 类型匹配、类型推断
 let doAnything5 = function (message = "默认值") {
     console.log(message);
 };
 doAnything5(true);
+let num4 = 5;
+//num4 = '5'
 let person1 = {
     name: 'felix',
     age: 12
@@ -99,6 +101,10 @@ let lastArr = (arr) => {
 };
 console.log(lastArr([1, 2, 3,]));
 console.log(lastArr(['1', '2', '3']));
+console.log(lastArr(['1', 2, '3']));
 let lastAr = (arr) => {
     return arr[arr.length - 1];
 };
+console.log(lastAr([1, 2, 3,]));
+console.log(lastAr(['1', '2', '3']));
+console.log(lastAr(['1', 2, '3']));

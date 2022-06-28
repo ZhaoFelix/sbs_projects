@@ -5,7 +5,7 @@
   "compilerOptions": {
     "target": "ES6",
     // none, commonjs, amd, es2015,ESNext
-    "module": "none",
+    "module": "es2015",
     "outDir": "./js"
   }
 }
