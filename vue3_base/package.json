@@ -7,6 +7,7 @@
     "build": "vue-cli-service build"
   },
   "dependencies": {
+    "element-plus": "^2.2.6",
     "vue": "^3.2.13"
   },
   "devDependencies": {
