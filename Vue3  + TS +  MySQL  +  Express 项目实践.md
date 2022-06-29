@@ -1614,4 +1614,256 @@ let makeTuple = <T, Y>[x: T, y: Y] = [x, y]
 let makeTuple = <T, Y = numbber>[x: T, y: Y] = [x, y]
 ```
 
-#### 
+#### TS中的模块
+
+##### 模块导出
+
+`common.ts`文件：
+
+```typescript
+// 导出常量
+export const a: number = 1
+// 导出函数
+export function sum(a:number, b: number): number {
+  return a + b
+}
+
+function minus(a:number, b: number): number {
+  return a - b
+}
+// 默认导出
+export default minus
+```
+
+同时导出多个对象：
+
+```typescript
+// 导出常量
+const a: number = 1
+// 导出函数
+function sum(a:number, b: number): number {
+  return a + b
+}
+
+function minus(a:number, b: number): number {
+  return a - b
+}
+export {a, sum, minus}
+```
+
+
+
+##### 模块导入
+
+`index.ts`文件：
+
+```typescript
+import minus, {sum, a} from "./common";
+let m = minus(5, 6)
+let total = sum(a, 7)
+```
+
+同时导入多个对象：
+
+```typescript
+// 导入所有对象并把他们放入一个单独的命名空间
+import * as common from './common'
+
+let total = common.sum(2,3)
+let m = common.default(common.a, 3)
+```
+
+##### 不同模块处理对比
+
+###### ES6
+
+`common.js`
+
+````typescript
+// 导出常量
+export var a = 1;
+// 导出函数
+export function sum(a, b) {
+    return a + b;
+}
+function minus(a, b) {
+    return a - b;
+}
+// 默认导出
+export default minus;
+````
+
+`index.js`
+
+```typescript
+import minus, { sum, a } from "./common";
+var m = minus(5, 6);
+var total = sum(a, 7);
+```
+
+###### commonjs
+
+`common.js`
+
+```typescript
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sum = exports.a = void 0;
+// 导出常量
+exports.a = 1;
+// 导出函数
+function sum(a, b) {
+    return a + b;
+}
+exports.sum = sum;
+function minus(a, b) {
+    return a - b;
+}
+// 默认导出
+exports.default = minus;
+```
+
+`index.js`
+
+```typescript
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var common_1 = require("./common");
+var m = (0, common_1.default)(5, 6);
+var total = (0, common_1.sum)(common_1.a, 7);
+```
+
+### Vue3基础
+
+#### Vue脚手架安装
+
+[Vue CLI 地址](https://cli.vuejs.org/zh/index.html)
+
+npm全局安装：
+
+```bash
+npm install -g @vue/cli
+```
+
+测试是否安装成功：
+
+```bash
+vue -V
+```
+
+or 
+
+```bash
+vue --version
+```
+
+````bash 
+@vue/cli 5.0.4
+````
+
+#### 创建Vue3项目
+
+````bash
+vue create vue3_base
+````
+
+Vue-cli 4中Vue版本默认Vue2，在 Vue-cli 5.0中使用Vue3作为默认的版本。
+
+选择手动项目配置，选择TypeScript和项目格式化工具。
+
+#### 实现计数功能
+
+##### 使用Vue2的方式
+
+1、HTML
+
+````html
+ <div>
+    <button @click="minus">-</button>
+    <span>{{ counter }}</span>
+    <button @click="plus">+</button>
+  </div>
+````
+
+2、js
+
+````js
+import { defineComponent } from 'vue'
+export default defineComponent({
+  name: 'App',
+  data() {
+    return {
+      counter: 1
+    }
+  },
+  methods: {
+    minus() {
+      this.counter -= 1
+    },
+    plus() {
+      this.counter += 1
+    }
+  }
+})
+````
+
+##### 使用setup实现 
+
+```typescript
+import { defineComponent, ref } from 'vue'
+export default defineComponent({
+  name: 'App',
+  setup() {
+    // 创建一个number类型的响应式对象
+    var counter = ref<number>(1)
+    let minus = () => {
+      counter.value -= 1
+    }
+    let plus = () => {
+      counter.value += 1
+    }
+    // 此处返回的内容，可以在其余的任意部分使用
+    return { counter, minus, plus }
+  }
+})
+```
+
+##### 使用语法糖优化代码
+
+````typescript
+<script lang="ts" setup>
+import { ref } from 'vue'
+var counter = ref<number>(0)
+function minus() {
+  counter.value -= 1
+}
+function plus() {
+  counter.value += 1
+}
+</script>
+````
+
+> 注意：需要在在<script>标签中添加`setup`关键字。
+
+#### 响应式数据
+
+##### Ref
+
+**ref**: 接受一个内部值并返回一个响应式且可变的 ref 对象。ref 对象仅有一个 `.value` property，指向该内部值。
+
+```ts
+var counter: Ref<number> = ref(0)
+// 或者
+var counter = ref<number>(0)
+// 以及
+var counter = ref(0)
+```
+
+**unref**:如果参数是一个 [`ref`](https://v3.cn.vuejs.org/api/refs-api.html#ref)，则返回内部值，否则返回参数本身。这是 `val = isRef(val) ? val.value : val` 的语法糖函数。
+
+````typescript
+console.log(unref(counter))
+// 等价于
+console.log(isRef(counter) ? counter.value : counter)
+````
+
