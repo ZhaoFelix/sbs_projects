@@ -1867,3 +1867,275 @@ console.log(unref(counter))
 console.log(isRef(counter) ? counter.value : counter)
 ````
 
+**toref**:可以用来为源响应式对象上的某个 property 新创建一个 [`ref`](https://v3.cn.vuejs.org/api/refs-api.html#ref)。然后，ref 可以被传递，它会保持对其源 property 的响应式连接。
+
+##### Reactive
+
+**reactive**:返回对象的响应式副本。
+
+````typescript
+let objc = reactive({
+  count: 0
+})
+console.log(objc)
+function minus() {
+  objc.count -= 1
+}
+function plus() {
+  objc.count += 1
+}
+````
+
+使用`toRef`可以将上面的`count`转换为一个响应式数据：
+
+````typescript
+let cun = toRef(objc, 'count')
+cun.value += 1
+````
+
+> 注意：当`cun.value`的值发生变化时，`objc.count`对应的值也将发生变化。
+
+#### 计算属性
+
+添加一个标签，在counter的基础上实现加1操作：
+
+````html
+<span>{{ '在counter的基础上加一：' + (counter + 1).toString() }}</span>
+````
+
+使用计算属性实现：
+
+````typescript
+var counterPlus = computed(() => (counter.value += 1))
+````
+
+#### 监听属性
+
+监听counter：
+
+````typescript
+watch(counter, (curretCounter: any, prevCounter: any) => {
+      console.log('counter发生变化', curretCounter, prevCounter)
+})
+````
+
+监听多个值：
+
+````typescript
+watch([firstName, lastName], (newValues, prevValues) => {
+  console.log(newValues, prevValues)
+})
+````
+
+#### 生命周期
+
+[生命周期图示](https://vuejs.org/guide/essentials/lifecycle.html#lifecycle-diagram)
+
+* setup() :开始创建组件之前，在beforeCreate和created之前执行。创建的是data和method
+
+* onBeforeMount() : 组件挂载到节点上之前执行的函数。
+
+* onMounted() : 组件挂载完成后执行的函数。
+
+* onBeforeUpdate(): 组件更新之前执行的函数。
+
+* onUpdated(): 组件更新完成之后执行的函数。
+
+* onBeforeUnmount(): 组件卸载之前执行的函数。
+
+* onUnmounted(): 组件卸载完成后执行的函数
+
+* onActivated(): 被包含在中的组件，会多出两个生命周期钩子函数。被激活时执行。
+
+* onDeactivated(): 比如从 A 组件，切换到 B 组件，A 组件消失时执行。
+
+* onErrorCaptured(): 当捕获一个来自子孙组件的异常时激活钩子函数（以后用到再讲，不好展现）。
+
+ ##### Vue2与Vue3的的生命周期钩子
+
+- `beforeCreate` ->  `setup()`
+- `created` ->  `setup()`
+- `beforeMount` -> `onBeforeMount`
+- `mounted` -> `onMounted`
+- `beforeUpdate` -> `onBeforeUpdate`
+- `updated` -> `onUpdated`
+- `beforeDestroy` -> `onBeforeUnmount`
+- `destroyed` -> `onUnmounted`
+- `errorCaptured` -> `onErrorCaptured`
+
+#### 组合式API和选项API
+
+组合式API：
+
+````typescript
+import { defineComponent, onMounted, onBeforeMount, } from 'vue'
+export default defineComponent({
+  name: 'App',
+  setup() {
+    onBeforeMount(() => {
+      console.log('挂载前')
+    })
+    onMounted(() => {
+      console.log('挂载')
+    })
+  }
+})
+````
+
+选项API：
+
+````typescript
+<script lang="ts">
+export default {
+  data() {},
+  created() {
+    console.log('创建')
+  },
+  mounted() {
+    console.log('挂载')
+  }
+}
+</script>
+````
+
+#### 使用Vue3 + Element Plus实现一个TODO-List
+
+##### 创建Todo list
+
+[Element-Plus](https://element-plus.gitee.io/zh-CN/)
+
+安装依赖：
+
+````bash
+npm install element-plus --save
+````
+
+在`main.ts`文件中引入`element-plus`和样式：
+
+```typescript
+import { createApp } from 'vue'
+import App from './App.vue'
+import ElementPlus from 'element-plus'
+// 引入样式
+import 'element-plus/dist/index.css'
+
+createApp(App)
+// 使用插件
+.use(ElementPlus)
+.mount('#app')
+```
+
+html 布局：
+
+```html
+<template>
+  <el-container>
+    <el-header class="header"> Todo List </el-header>
+    <el-main>
+      <!-- 任务添加 -->
+      <el-row>
+        <el-col :offset="8" :span="8">
+          <el-input v-model="todo" size="small" placeholder="Add new Task">
+            <template #append>
+              <el-button type="primary" @click="addTask">Add</el-button>
+            </template>
+          </el-input>
+        </el-col>
+      </el-row>
+      <!-- 任务展示列表 -->
+      <el-row>
+        <el-col :offset="8" :span="8">
+          <el-table :data="tableData">
+            <el-table-column prop="todo" label="任务"></el-table-column>
+            <el-table-column prop="date" label="添加日期"></el-table-column>
+            <el-table-column label="是否已完成">
+              <template #default="scope">
+                {{ scope.row.isDone ? '已完成' : '未完成' }}
+              </template>
+            </el-table-column>
+            <el-table-column label="操作">
+              <template #default="scope">
+                <el-button
+                  type="success"
+                  size="small"
+                  @click="doneTask(scope.row)"
+                  >{{ scope.row.isDone ? 'UnDone' : 'Done' }}</el-button
+                >
+                <el-button
+                  type="danger"
+                  size="small"
+                  @click="deleteTask(scope.row)"
+                  >Delete</el-button
+                >
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-col>
+      </el-row>
+    </el-main>
+  </el-container>
+</template>
+```
+
+ts部分：
+
+```typescript
+<script lang="ts" setup>
+import { reactive, ref } from 'vue'
+import { Todo } from './model'
+let todo = ref<String>('')
+const tableData: Array<Todo> = reactive([new Todo('任务一', false, '2022')])
+// 任务添加
+function addTask() {
+  if (todo.value == '') {
+    // 内容为空
+  } else {
+    let td = new Todo(todo.value.toString(), false, '2022')
+    tableData.push(td)
+  }
+}
+
+// 完成
+function doneTask(row: Todo) {
+  row.isDone = !row.isDone
+}
+// 删除
+function deleteTask(row: Todo) {
+  // 查找索引
+  let index = tableData.indexOf(row)
+  // 等于-1表示不存在元素
+  if (index > -1) {
+    // 根据索引删除元素
+    tableData.splice(index, 1)
+  }
+}
+</script>
+```
+
+model.ts部分：
+
+````typescript
+export class Todo {
+  todo: string;
+  isDone: boolean
+  date: string
+  constructor(todo: string, isDone: boolean, date: string) {
+    this.todo = todo 
+    this.isDone = isDone
+    this.date = date 
+  }
+}
+````
+
+css部分：
+
+```css
+.header {
+  line-height: 60px;
+  font-weight: bold;
+  font-size: 30px;
+}
+```
+
+##### 
+
