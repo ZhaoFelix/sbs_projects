@@ -28,7 +28,7 @@ const props: any = defineProps({
 // 添加
 function addTask() {
   if (todo.value != '') {
-    props.tableData.push(new Todo(todo.value, '2022-06-29', false))
+    props.tableData.push(new Todo(todo.value, '2022-06-29'))
   }
 }
 </script>

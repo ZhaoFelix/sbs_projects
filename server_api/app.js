@@ -8,7 +8,7 @@ var logger = require('morgan')
 var indexRouter = require('./routes/index')
 var adminRouter = require('./routes/admin')
 var app = express()
-
+var cors = require('cors')
 // 设置视图引擎
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'jade')
@@ -18,7 +18,8 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
-
+// 设置跨源访问
+app.use(cors())
 // 注册路由
 // ip:端口号 + 路由
 app.use('/', indexRouter)

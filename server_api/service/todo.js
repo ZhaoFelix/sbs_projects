@@ -1,7 +1,9 @@
 const DB = require('../config/db')
 // 查询所有todo
 function queyAllTodo() {
-  return DB.queryDB('select * from t_dodo_list')
+  return DB.queryDB(
+    'select * from t_dodo_list where is_deleted != 0 order by created_time'
+  )
 }
 // 添加todo
 function addOneTodo(todo) {

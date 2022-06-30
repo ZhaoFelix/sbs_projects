@@ -2137,5 +2137,401 @@ css部分：
 }
 ```
 
+##### 使用组件拆分的方式对TODO LIST进行重构
+
+1、新建`Add.vue`文件：
+
+```html
+<template>
+  <el-row>
+    <el-col :offset="8" :span="8">
+      <el-input v-model="todo" size="small" placeholder="Add new Task">
+        <template #append>
+          <el-button type="primary" @click="addTask">Add</el-button>
+        </template>
+      </el-input>
+    </el-col>
+  </el-row>
+</template>
+
+<script lang="ts" setup>
+import { ref, defineProps } from 'vue'
+import { Todo } from '../model'
+const props = defineProps({
+  tableData: Array
+})
+let todo = ref<String>('')
+// 任务添加
+function addTask() {
+  console.log('测试')
+  if (todo.value == '') {
+    // 内容为空
+  } else {
+    let td = new Todo(todo.value.toString(), false, '2022')
+    console.log(props.tableData)
+    props.tableData.push(td)
+    console.log(props.tableData)
+  }
+}
+</script>
+```
+
+2、新建`Todo.vue`文件：
+
+```html
+<template>
+  <el-row>
+    <el-col :offset="8" :span="8">
+      <el-table :data="props.tableData">
+        <el-table-column prop="todo" label="任务"></el-table-column>
+        <el-table-column prop="date" label="添加日期"></el-table-column>
+        <el-table-column label="是否已完成">
+          <template #default="scope">
+            {{ scope.row.isDone ? '已完成' : '未完成' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作">
+          <template #default="scope">
+            <el-button
+              type="success"
+              size="small"
+              @click="doneTask(scope.row)"
+              >{{ scope.row.isDone ? 'UnDone' : 'Done' }}</el-button
+            >
+            <el-button type="danger" size="small" @click="deleteTask(scope.row)"
+              >Delete</el-button
+            >
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-col>
+  </el-row>
+</template>
+
+<script lang="ts" setup>
+import { Todo } from '../model'
+import { defineProps } from 'vue'
+const props: any = defineProps({
+  tableData: Array
+})
+// 完成
+function doneTask(row: Todo) {
+  row.isDone = !row.isDone
+}
+// 删除
+function deleteTask(row: Todo) {
+  // 查找索引
+  let index = props.tableData.indexOf(row)
+  // 等于-1表示不存在元素
+  if (index > -1) {
+    // 根据索引删除元素
+    props.tableData.splice(index, 1)
+  }
+}
+</script>
+```
+
+3、在`App.vue`中引入和使用组件：
+
+````html
+<template>
+  <el-container>
+    <el-header class="header"> Todo List </el-header>
+    <el-main>
+      <!-- 任务添加 -->
+      <add :table-data="tableData"></add>
+      <!-- 任务展示列表 -->
+      <todo :table-data="tableData"></todo>
+    </el-main>
+  </el-container>
+</template>
+
+<script lang="ts" setup>
+import { reactive, ref } from 'vue'
+import { Todo } from './model'
+import Add from './components/Add.vue'
+import todo from './components/Todo.vue'
+const tableData: Array<Todo> = reactive([new Todo('任务一', false, '2022')])
+</script>
+
+<style>
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+}
+
+.header {
+  line-height: 60px;
+  font-weight: bold;
+  font-size: 30px;
+}
+</style>
+````
+
+##### 将数据添加存储到MySQL数据库
+
+###### 建表
+
+````sql
+create table if not exists `t_todo_list` (
+    id int unique primary key auto_increment comment 'id',
+    todo varchar(50) default null comment  '待办事项',
+    is_done int default 0 comment '是否完成，1：有效',
+    created_time datetime default now() comment '添加时间',
+    done_time datetime default null comment  '完成时间',
+    is_deleted int default  0 comment '是否被删除'
+) charset = utf8mb4;
+````
+
+###### 实现接口的增删查改
+
+在项目**server_api**项目下新建`services/todo.js`文件，在这个文件中实现TODO的业务逻辑：
+
+```javascript
+const DB = require('../config/db')
+// 查询所有todo
+function queyAllTodo() {
+  return DB.queryDB(
+    'select * from t_dodo_list where is_deleted != 0 order by created_time'
+  )
+}
+// 添加todo
+function addOneTodo(todo) {
+  if (todo == undefined) {
+    return Promise.reject('添加内容为空')
+  } else {
+    return DB.queryDB('insert into t_dodo_list(todo) value(?);', todo)
+  }
+}
+
+// 完成
+function doneTodo(id) {
+  if (id === undefined) {
+    return Promise.reject('id为空')
+  } else {
+    return DB.queryDB(
+      'select id from t_dodo_list where id=? and is_done = 1',
+      id
+    )
+      .then((data) => {
+        if (data.length == 1) {
+          return Promise.resolve(`id为${id}todo已完成`)
+        } else {
+          return DB.queryDB(
+            'update  t_dodo_list set is_done = 1,done_time = now() where  id = ? and is_done = 0;',
+            id
+          )
+        }
+      })
+      .catch((error) => {
+        return Promise.reject(error)
+      })
+  }
+}
+
+// 删除
+function deleteTodo(id) {
+  if (id === undefined) {
+    return Promise.reject('id为空')
+  } else {
+    return DB.queryDB(
+      'update t_dodo_list set is_deleted = 1 where id = ? and is_deleted = 0',
+      id
+    )
+  }
+}
+module.exports = {
+  queyAllTodo,
+  addOneTodo,
+  doneTodo,
+  deleteTodo
+}
+```
+
+在项目**server_api**的**routes**目录下新建`todo/index.js`，在这个文件中实现todo的增删查改：
+
+````javascript
+var express = require('express')
+var router = express.Router()
+const {
+  queyAllTodo,
+  addOneTodo,
+  doneTodo,
+  deleteTodo
+} = require('../../service/todo')
+var Result = require('../../config/result')
+// 查询todo
+router.get('/query/all', function (req, res, next) {
+  queyAllTodo()
+    .then((data) => {
+      return new Result(data, '查询成功').success(res)
+    })
+    .catch((error) => {
+      console.log(error)
+      return new Result(error, '查询失败').fail(res)
+    })
+})
+// 添加todo
+router.get('/add/one', function (req, res, next) {
+  const { todo } = req.query
+  addOneTodo(todo)
+    .then((data) => {
+      return new Result(data, '添加成功').success(res)
+    })
+    .catch((error) => {
+      return new Result(error, '添加失败').fail(res)
+    })
+})
+
+// 完成todo
+router.get('/update/done', function (req, res, next) {
+  const { id } = req.query
+  doneTodo(id)
+    .then((data) => {
+      return new Result(data, '更新成功').success(res)
+    })
+    .catch((error) => {
+      return new Result(error, '更新失败').fail(res)
+    })
+})
+
+// 删除todo
+router.get('/delete/one', function (req, res, next) {
+  const { id } = req.query
+  deleteTodo(id)
+    .then((data) => {
+      return new Result(data, '删除成功').success(res)
+    })
+    .catch((error) => {
+      return new Result(error, '删除失败').fail(res)
+    })
+})
+
+module.exports = router
+````
+
+> 注意：每个接口完成后，都需要在接口工具中进行测试。
+
+##### 使用axios实现数据请求
+
+1、安装axios依赖
+
+```bash
+npm install -s axios
+```
+
+3、在`App.vue`发送请求
+
+```javascript
+<script lang="ts" setup>
+import { reactive, ref } from 'vue'
+import { Todo } from './model'
+import Add from './components/Add.vue'
+import todo from './components/Todo.vue'
+import axios from 'axios'
+const tableData: Array<Todo> = reactive([])
+function getData() {
+  console.log('数据获取')
+  let api = 'http://localhost:3000/todo/query/all'
+  axios
+    .get(api)
+    .then((res) => {
+      let data = res.data
+      if (data.code == 20000) {
+        // 数据获取成功
+        for (let d of data.data) {
+          let todo = new Todo(d.id, d.todo, d.is_done, d.created_time)
+          tableData.push(todo)
+        }
+      } else {
+        // 数据获取失败
+        console.log(data.message)
+      }
+    })
+    .catch((err) => {
+      console.log(err)
+    })
+}
+getData()
+</script>
+```
+
+4、添加一个时间格式化函数，将时间格式化为标准格式
+
+新建一个`utils.ts`文件：
+
+```javascript
+export function parseTime(time: any, cFormat: any) {
+  if (arguments.length === 0) {
+    return null;
+  }
+  const format = cFormat || "{y}-{m}-{d} {h}:{i}:{s}";
+  let date;
+  if (typeof time === "object") {
+    date = time;
+  } else {
+    if (typeof time === "string" && /^[0-9]+$/.test(time)) {
+      time = parseInt(time);
+    }
+    if (typeof time === "number" && time.toString().length === 10) {
+      time = time * 1000;
+    }
+    date = new Date(time);
+  }
+  const formatObj:any = {
+    y: date.getFullYear(),
+    m: date.getMonth() + 1,
+    d: date.getDate(),
+    h: date.getHours(),
+    i: date.getMinutes(),
+    s: date.getSeconds(),
+    a: date.getDay()
+  };
+  const time_str = format.replace(/{(y|m|d|h|i|s|a)+}/g, (result:any, key:any) => {
+    let value = formatObj[key];
+    // Note: getDay() returns 0 on Sunday
+    if (key === "a") {
+      return ["日", "一", "二", "三", "四", "五", "六"][value];
+    }
+    if (result.length > 0 && value < 10) {
+      value = "0" + value;
+    }
+    return value || 0;
+  });
+  return time_str;
+}
+```
+
+引入模块，修改下面的代码：
+
+```javascript
+import { parseTime } from './utils'
+
+let todo = new Todo(d.id,d.todo,d.is_done, parseTime(d.created_time))
+```
+
+
+
+##### 使用cors依赖解决前后端的跨域问题
+
+[跨源资源共享](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/CORS)
+
+在接口服务端安装依赖：
+
+```bash
+npm install cors
+```
+
+在入口文件中使用依赖：
+
+```javascript
+var cors = require('cors')
+// 使用跨域插件
+app.use(cors())
+```
+
 ##### 
 
