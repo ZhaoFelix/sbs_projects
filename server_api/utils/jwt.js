@@ -6,5 +6,5 @@ module.exports = expressjwt({
   algorithms: ['HS256']
 }).unless({
   // 不适用jwt认证的路由白名单
-  path: [/\/docs*/, '/', /\/todo*/]
+  path: [/\/docs*/, '/']
 })

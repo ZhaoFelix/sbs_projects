@@ -1,13 +1,15 @@
 
 export class Todo {
+  id: number;
   todo: string;
-  date: string;
   isDone: boolean;
   doneTime: string | undefined;
-  constructor(todo: string, date: string,isDone: boolean = false, doneTime?:string, ) {
+  createTime: string | undefined;
+  constructor(todo: string, id:number = 0, isDone: boolean = false, createTime?: string, doneTime?:string, ) {
+    this.id = id
     this.todo = todo
-    this.date = date
     this.isDone = isDone
+    this.createTime = createTime
     this.doneTime = doneTime
   }
 }

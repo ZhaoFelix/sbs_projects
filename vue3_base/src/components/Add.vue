@@ -4,7 +4,7 @@
       <el-input
         v-model="todo"
         placeholder=""
-        size="normal"
+        size="default"
         clearable
         @change=""
       >
@@ -21,6 +21,9 @@
 <script lang="ts" setup>
 import { ref, defineProps } from 'vue'
 import { Todo } from '../type/todo'
+import request from '../utils/request'
+import { ElMessage } from 'element-plus'
+
 let todo = ref<string>('')
 const props: any = defineProps({
   tableData: Array
@@ -28,7 +31,23 @@ const props: any = defineProps({
 // 添加
 function addTask() {
   if (todo.value != '') {
-    props.tableData.push(new Todo(todo.value, '2022-06-29'))
+    request
+      .get(`/todo/add/one?todo=${todo.value}`)
+      .then((res) => {
+        ElMessage({
+          message: '添加成功',
+          type: 'success',
+          duration: 2000
+        })
+        props.tableData.push(new Todo(todo.value))
+      })
+      .catch((error) => {
+        ElMessage({
+          message: error,
+          type: 'error',
+          duration: 2000
+        })
+      })
   }
 }
 </script>
