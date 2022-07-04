@@ -1,3 +1,5 @@
+
+
 # Vue3  + TS +  MySQL  +  Express 项目实践
 
 ### 最终项目提交
@@ -304,22 +306,13 @@ drop role '角色名'
 表结构：
 
 * ID：自增，唯一，主键
-
 * 登录名：varchar
-
 * 密码: varchar
-
 * 角色类型：int(1:管理员，2：二级管理员，3：三级管理员)
-
 * 上一次登录时间：datetime
-
 * 是否被删除：int（1：有效，0：无效）
-
 * 绑定用户名：varchar
-
 * 用户token: varchar
-
-  
 
 SQL语句：
 
@@ -554,6 +547,8 @@ npm install
 3、运行项目：
 
 ````bash
+node ./bin/www
+
 npm run start
 ````
 
@@ -693,6 +688,20 @@ res.send(responseJSON)
 
 > 注意： 不能有多个响应，所以需要注释掉底部的渲染。
 
+
+
+#### 状态码
+
+* 200
+
+* 404
+
+* 403
+
+* 304
+
+  
+
 ### 封装响应类
 
 ````js
@@ -825,8 +834,6 @@ router.post('/add/one', function (req, res, next) {
 
 > **post**请求无法再浏览器总直接获取结果，需要在接口工具中进行测试。
 
-
-
 ### 通用处理
 
 #### 批量自动导入接口
@@ -911,14 +918,6 @@ for (const prefix in scanResult) {
 ```
 
 新建任意一个路由进行测试。
-
-```js
-/admin   --> routes/admin.js
-/users  ---> routes/users.js
-/pc/admin/admin --> /pc/admin/admin.js
-/pc/admin ---> /pc/admin/admin/index.js
-/pc/order ---> /pc/order/index.js
-```
 
 #### 404接口处理
 
@@ -1176,6 +1175,199 @@ router.get('/delete', function (req, res, next) {
     })
 })
 ```
+
+#### Content-Type
+
+1. text/html ： HTML格式
+2. text/plain ：纯文本格式
+3. text/xml ： XML格式
+4. image/gif ：gif图片格式
+5. image/jpeg ：jpg图片格式
+6. image/png：png图片格式
+7. application/xhtml+xml ：XHTML格式
+8. application/xml ： XML数据格式
+9. application/atom+xml ：Atom XML聚合格式
+10. application/json ： JSON数据格式
+11. application/pdf ：pdf格式
+12. application/msword ： Word文档格式
+13. application/octet-stream ： 二进制流数据（如常见的文件下载）
+14. application/x-www-form-urlencoded ： 中默认的encType，form表单数据被编码为key/value格式发送到服务器（表单默认的提交数据的格式）
+15. multipart/form-data ： 需要在表单中进行文件上传时，就需要使用该格式
+
+
+
+### JWT 接口验证
+
+[什么是JWT](https://jwt.io/)
+
+1、安装依赖
+
+[express-jwt](https://www.npmjs.com/package/express-jwt)
+
+```bash
+npm install -s  express-jwt
+```
+
+2、在`env.js`中设置jwt的配置信息：
+
+```javascript
+let jwt_options = {
+  PWD_SALT: 'qingmao_sbs',
+  PRIVATE_KEY: 'qingmaoqunxintyuioiuygf567hgew',
+  // 有效期
+  JWT_EXPIRED: 60 * 60 * 24
+}
+```
+
+3、创建一个`/utils/jwt.js`文件：
+
+```javascript
+const { expressjwt } = require('express-jwt')
+const { jwt_options } = require('../config/env')
+
+module.exports = expressjwt({
+  secret: jwt_options.PRIVATE_KEY,
+  credentialsRequired: true,
+  algorithms: ['HS256']
+}).unless({
+  // 不进行安全认证的白名单
+  path: ['/']
+})
+```
+
+4、在`routes/index.js`的异常路由中间件添加jwt异常处理：
+
+```javascript
+router.use((err, req, res, next) => {
+  if (err.name && err.name === 'UnauthorizedError') {
+    const { status = 401, message } = err
+    new Result(null, 'token失效', {
+      error: status,
+      errorMsg: message
+    }).jwtError(res.status(status))
+  } else {
+    const msg = (err && err.message) || '系统错误'
+    const statusCode = (err.output && err.output.statusCode) || 500
+    const errorMsg =
+      (err.output && err.output.payload && err.output.payload.error) ||
+      err.message
+    new Result(null, msg, {
+      error: statusCode,
+      errorMsg
+    }).fail(res.status(statusCode))
+  }
+})
+```
+
+5、在`Result`类中添加一个方法：
+
+```javascript
+ jwtError(res) {
+    this.code = 401
+    this.json(res)
+  }
+```
+
+在官网使用使用秘钥生成一个token，在**Apipost**中的使用**认证**，选择**Bearer auth认证**。
+
+#### 使用swagger生成接口文档
+
+1、安装依赖
+
+```bash
+npm install swagger-ui-express
+```
+
+2、在`app.js`中进行配置：
+
+```bash
+const swapperUi = require('swagger-ui-express')
+const swaggerDocument = require('./swagger.json')
+
+app.use('/api-docs', swapperUi.serve, swapperUi.setup(swaggerDocument))
+```
+
+3、在浏览器内访问地址`http://localhost:3000/api-docs`。
+
+4、在根目录下创建`swagger.json`文件，进行配置：
+
+```json
+{
+  "swagger":"2.0",
+  "info": {
+    "version":"1.0.0",
+    "title": "后端接口项目",
+    "description":"express创建的接口项目",
+    "license": {
+
+    }
+  },
+  "host": "localhost:8000",
+  "basePath":"/",
+  "tags": [
+    {
+      "name":"admin",
+      "description":"管理员相关"
+    }
+  ],
+  "schemes": ["http"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "paths": {
+    "admin/add/one": {
+      "get": {
+        "tags":["admin"],
+        "summary":"添加管理员",
+        "responses": {
+          "200": {
+            "description": "ok",
+            "schema": {
+              "$ref": "#/definitions/Admin"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Admin": {
+      "required": ["admin_name",
+      "admin_pwd","admin_type"],
+      "properties": {
+        "admin_name":{
+          "type":"string"
+        },
+        "admin_pwd":{
+          "type":"string"
+        },
+        "admin_type": {
+          "type":"number"
+        }
+      }
+    }
+  }
+}
+```
+
+> 更多配置信息查看[Swagger Editor](https://editor.swagger.io/)。
+
+### 接口工具
+
+#### 常用的接口工具
+
+* [Postman](https://www.postman.com/)
+* Postwoman已更名为[Hoppscotch](https://hoppscotch.io/)
+* [Apipost](https://www.apipost.cn/)
+* [Apifox](https://www.apifox.cn/)
+* VS Code插件
+
+####  Apipost
+
+1、新建项目
+
+2、设置项目的环境变量
+
+3、项目文档生成和导出
 
 ## Vue3 + TS
 
@@ -1780,7 +1972,7 @@ Vue-cli 4中Vue版本默认Vue2，在 Vue-cli 5.0中使用Vue3作为默认的版
 ````html
  <div>
     <button @click="minus">-</button>
-    <span>{{ counter }}</span>
+    <span >{{ counter }}</span>
     <button @click="plus">+</button>
   </div>
 ````
@@ -2533,5 +2725,389 @@ var cors = require('cors')
 app.use(cors())
 ```
 
-##### 
+##### 使用封装的request获取数据
 
+新建一个`request.ts`文件：
+
+```typescript
+import axios from 'axios'
+
+// 使用axios创建一个服务
+const service = axios.create({
+  baseURL:'http://localhost:3000',
+  timeout: 60000, //单位毫秒
+})
+
+// 设置请求拦截器
+service.interceptors.request.use(
+  (config: any) => {
+      config.headers['Authorization'] = 'Bearer' + ''
+      return config
+  },
+  error => {
+      console.log(error)
+      return Promise.reject(error)
+  }
+)
+
+// 设置响应拦截器
+service.interceptors.response.use(
+  response => {
+    const res = response.data
+    if (res.code == 2000) {
+          return res 
+    } else {
+      if (res.code == 20001) {
+        
+      } 
+    }
+  },
+  error => {
+      return Promise.reject(error)
+  }
+)
+
+export default service
+
+```
+
+使用封装的请求获取数据：
+
+```typescript
+function getData() {
+  service
+    .get('todo/query/all')
+    .then((data) => {
+      console.log(data)
+      for (let d of data.data) {
+        let todo = new Todo(d.id, d.todo, d.is_done, d.created_time)
+        tableData.push(todo)
+      }
+    })
+    .catch((error) => {
+      console.log(error)
+    })
+}
+```
+
+最终的代码：
+
+`Todo.ts`:
+
+````typescript
+
+export class Todo {
+  id: number | undefined;
+  todo: string ;
+  isDone: boolean
+  date: string | undefined
+  // 可选参数和默认参数必须放在参数列表的末尾
+  constructor(todo: string, date?: string, isDone: boolean = false, id?:number) {
+    this.id = id
+    this.todo = todo
+    this.date = date
+    this.isDone = isDone 
+  }
+}
+````
+
+`App.vue`:
+
+```html
+<template>
+  <el-container>
+    <el-header class="header"> Todo List </el-header>
+    <el-main>
+      <!-- 任务添加 -->
+      <add :table-data="tableData"></add>
+      <!-- 任务展示列表 -->
+      <todo :table-data="tableData"></todo>
+    </el-main>
+  </el-container>
+</template>
+
+<script lang="ts" setup>
+import { reactive, ref } from 'vue'
+import { Todo } from './model'
+import Add from './components/Add.vue'
+import todo from './components/Todo.vue'
+import axios from 'axios'
+import { parseTime } from './utils'
+import service from './request'
+
+const tableData: Array<Todo> = reactive([])
+function getData() {
+  service
+    .get('todo/query/all')
+    .then((data: any) => {
+      for (let d of data) {
+        let todo = new Todo(d.todo, parseTime(d.created_time), d.is_done, d.id)
+        tableData.push(todo)
+      }
+    })
+    .catch((error) => {
+      console.log(error)
+    })
+}
+getData()
+</script>
+
+<style>
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+}
+
+.header {
+  line-height: 60px;
+  font-weight: bold;
+  font-size: 30px;
+}
+</style>
+
+```
+
+`Todo.vue`文件：
+
+```html
+<template>
+  <el-row>
+    <el-col :offset="8" :span="8">
+      <el-table :data="props.tableData">
+        <el-table-column prop="todo" label="任务"></el-table-column>
+        <el-table-column prop="date" label="添加日期"></el-table-column>
+        <el-table-column label="是否已完成">
+          <template #default="scope">
+            {{ scope.row.isDone ? '已完成' : '未完成' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作">
+          <template #default="scope">
+            <el-button
+              type="success"
+              size="small"
+              @click="doneTask(scope.row)"
+              >{{ scope.row.isDone ? 'UnDone' : 'Done' }}</el-button
+            >
+            <el-button type="danger" size="small" @click="deleteTask(scope.row)"
+              >Delete</el-button
+            >
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-col>
+  </el-row>
+</template>
+
+<script lang="ts" setup>
+import { Todo } from '../model'
+import { defineProps } from 'vue'
+import service from '../request'
+const props: any = defineProps({
+  tableData: Array
+})
+// 完成
+function doneTask(row: Todo) {
+  service
+    .get(`todo/update/one?id=${row.id}`)
+    .then((data) => {
+      row.isDone = !row.isDone
+    })
+    .catch((error) => {
+      console.log(error)
+    })
+}
+// 删除
+function deleteTask(row: Todo) {
+  service
+    .get(`todo/delete/one?id=${row.id}`)
+    .then((data) => {
+      // 查找索引
+      let index = props.tableData.indexOf(row)
+      // 等于-1表示不存在元素
+      if (index > -1) {
+        // 根据索引删除元素
+        props.tableData.splice(index, 1)
+      }
+    })
+    .catch((error) => {
+      console.log(error)
+    })
+}
+</script>
+
+```
+
+`Add.vue`:
+
+```html
+<template>
+  <el-row>
+    <el-col :offset="8" :span="8">
+      <el-input v-model="todo" size="small" placeholder="Add new Task">
+        <template #append>
+          <el-button type="primary" @click="addTask">Add</el-button>
+        </template>
+      </el-input>
+    </el-col>
+  </el-row>
+</template>
+
+<script lang="ts" setup>
+import { defineProps, ref } from 'vue'
+import { Todo } from '../model'
+import service from '../request'
+const props = defineProps({
+  tableData: Array
+})
+let todo = ref<String>('')
+// 任务添加
+function addTask() {
+  if (todo.value == '') {
+    // 内容为空
+  } else {
+    let td = new Todo(todo.value.toString())
+    service
+      .post('todo/add/one', td)
+      .then((data) => {
+        props.tableData.push(td)
+      })
+      .catch((error) => {})
+  }
+}
+</script>
+```
+
+##### 项目打包
+
+新建`vue.config.js`文件，添加配置：
+
+```javascript
+module.exports = {
+  publicPath: './',
+  configureWebpack: {
+    externals: {
+      vue: 'Vue',
+      'element-plus': 'ElementPlus',
+      axios: 'axios'
+    }
+  }
+}
+```
+
+在`public /index.html`文件的`head`标签中使用cdn引入UI组件库：
+
+```html
+<script src="//unpkg.com/vue@next"></script>
+<script src="//unpkg.com/element-plus"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<link rel="stylesheet" href="//unpkg.com/element-plus/dist/index.css" />
+```
+
+打包项目：
+
+```bash
+npm run build 
+```
+
+查看打包的项目报告：
+
+````bash
+npm run build --report
+````
+
+> 在打包的`dist`文件夹下打开`report.html`文件，查看各个模块的打包。
+
+
+
+#### 使用vite 构建TODO-List
+
+##### 使用vite 创建项目包
+
+```bash
+npm create vite@latest
+```
+
+根据命令好指示选择`vue`和`vue-ts`的项目配置。
+
+##### 在项目目录下安装依赖和运行项目
+
+```bash
+cd vite_todo
+npm install
+npm run dev
+```
+
+##### 配置组件自动导入
+
+安装依赖：
+
+```bash
+npm install unplugin-auto-import -D 
+npm install unplugin-vue-components -D 
+```
+
+在`vite.config.ts`文件中：
+
+```typescript
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import Components  from 'unplugin-vue-components/vite'
+import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
+import AutoImport from 'unplugin-auto-import/vite'
+import path from 'path'
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  base:  './',
+  plugins: [
+    vue(),
+    Components({
+      // 指定组件的位置
+      dirs: ['src/components'],
+      extensions: ['ts', 'tsx', 'vue'],
+      // 配置文件的生成位置
+      dts: 'src/components.d.ts',
+      resolvers:[
+        // 自动导入element plus 组件
+        ElementPlusResolver({
+          importStyle: 'sass',
+          directives:true,
+        })
+      ],
+    }),
+    AutoImport({
+      resolvers:[ElementPlusResolver()],
+      imports:['vue', 'vue-router'],
+      dts: 'src/auto-import.d.ts'
+    }),
+  ],
+  resolve: {
+    // 导入文件夹别名
+    alias: {
+      '@': path.resolve(__dirname, './src')
+    }
+  }
+})
+
+```
+
+##### 将之前的代码移植到新项目中
+
+代码导入之后，去除头部的vue相关的引入。
+
+##### 项目预览
+
+```bash
+npm run preview
+```
+
+##### 项目打包
+
+```bash
+npm run build
+```
