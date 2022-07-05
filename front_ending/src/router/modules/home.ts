@@ -17,7 +17,8 @@ const homeRouter = {
       name: "welcome",
       component: () => import("/@/views/welcome.vue"),
       meta: {
-        title: $t("menus.hshome")
+        title: $t("menus.hshome"),
+        
       }
     }
   ]
