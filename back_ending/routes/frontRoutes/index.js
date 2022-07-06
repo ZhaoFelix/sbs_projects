@@ -7,7 +7,7 @@ router.get('/getAsyncRoutes', function (req, res, next) {
   const { name } = req.query
   return res.send({
     code: 0,
-    info: []
+    info: getAsyncRoutes(name),
   })
 })
 

@@ -23,7 +23,7 @@ class Result {
     }
     let base = {
       code: this.code,
-      message: this.message
+      message: this.message,
     }
 
     if (this.data) {

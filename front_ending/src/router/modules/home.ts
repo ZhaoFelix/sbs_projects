@@ -18,7 +18,7 @@ const homeRouter = {
       component: () => import("/@/views/welcome.vue"),
       meta: {
         title: $t("menus.hshome"),
-        
+        authority: ['v-admin']
       }
     }
   ]

@@ -5,25 +5,25 @@ const adminRouter = {
   meta: {
     title: 'menus.permission',
     icon: 'lollipop',
-    rank: 7
+    rank: 7,
   },
   children: [
     {
       path: '/permission/page/index',
       name: 'permissionPage',
       meta: {
-        title: 'menus.permissionPage'
-      }
+        title: 'menus.permissionPage',
+      },
     },
     {
       path: '/permission/button/index',
       name: 'permissionButton',
       meta: {
         title: 'menus.permissionButton',
-        authority: ['v-admin']
-      }
-    }
-  ]
+        authority: ['v-admin'],
+      },
+    },
+  ],
 }
 
 const systemRouter = {
@@ -32,27 +32,27 @@ const systemRouter = {
   meta: {
     title: '系统管理',
     icon: 'lollipop',
-    rank: 8
+    rank: 8,
   },
   children: [
     {
       path: '/system/setting/index',
       name: 'systemSetting',
       meta: {
-        title: '系统设置'
-      }
+        title: '系统设置',
+      },
     },
     {
       path: '/system/info/index',
       name: 'systemInfo',
       meta: {
-        title: '系统信息'
-      }
-    }
-  ]
+        title: '系统信息',
+      },
+    },
+  ],
 }
 
 module.exports = {
   adminRouter,
-  systemRouter
+  systemRouter,
 }

@@ -115,6 +115,7 @@ function resetRouter(): void {
 
 // 初始化路由
 function initRouter(name: string) {
+  console.log(name)
   return new Promise(resolve => {
     getAsyncRoutes({ name }).then(({ info }) => {
       if (info.length === 0) {

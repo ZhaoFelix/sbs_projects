@@ -7,7 +7,7 @@ const jwt = require('../utils/jwt')
 
 // jwt中间件
 // 要放置在所有路由前
-router.use(jwt)
+// router.use(jwt)
 
 // 扫描路由路径，自动导入接口路由
 const scanResult = helper.scanDirModules(__dirname, __filename)
@@ -34,7 +34,7 @@ router.use((err, req, res, next) => {
     const { status = 401, message } = err
     new Result(null, 'token失效', {
       error: status,
-      errorMsg: message
+      errorMsg: message,
     }).jwtError(res.status(status))
   } else {
     const msg = (err && err.message) || '系统错误'
@@ -44,7 +44,7 @@ router.use((err, req, res, next) => {
       err.message
     new Result(null, msg, {
       error: statusCode,
-      errorMsg
+      errorMsg,
     }).fail(res.status(statusCode))
   }
 })
