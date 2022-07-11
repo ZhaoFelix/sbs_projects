@@ -4,7 +4,6 @@ import { toRouteType } from "./types";
 import { openLink } from "/@/utils/link";
 import NProgress from "/@/utils/progress";
 import { findIndex } from "lodash-unified";
-import { transformI18n } from "/@/plugins/i18n";
 import { buildHierarchyTree } from "/@/utils/tree";
 import { useMultiTagsStoreHook } from "/@/store/modules/multiTags";
 import { usePermissionStoreHook } from "/@/store/modules/permission";
@@ -90,8 +89,8 @@ router.beforeEach((to: toRouteType, _from, next) => {
       if (!item.meta.title) return "";
       const Title = getConfig().Title;
       if (Title)
-        document.title = `${transformI18n(item.meta.title)} | ${Title}`;
-      else document.title = transformI18n(item.meta.title);
+        document.title = `${item.meta.title} | ${Title}`;
+      else document.title = `${item.meta.title}`;
     });
  
    let name: any =  getToken() //storageSession.getItem("info");

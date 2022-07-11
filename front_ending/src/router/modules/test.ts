@@ -1,4 +1,3 @@
-import { $t } from "/@/plugins/i18n";
 const Layout = () => import("/@/layout/index.vue");
 
 const homeRouter = {
@@ -8,7 +7,7 @@ const homeRouter = {
   redirect: "/test1",
   meta: {
     icon: "home-filled",
-    title: $t("menus.hshome"),
+    title: "首页",
     rank: 1
   },
   children: [
@@ -17,7 +16,7 @@ const homeRouter = {
       name: "test1",
       component: () => import("/@/views/welcome.vue"),
       meta: {
-        title: $t("menus.hshome")
+        title: "首页"
       }
     },
      {
@@ -25,7 +24,7 @@ const homeRouter = {
       name: "test2",
       component: () => import("/@/views/welcome.vue"),
       meta: {
-        title: $t("menus.hshome")
+        title: "首页"
       }
     }
   ]

@@ -24,6 +24,7 @@
     ],
     "i18n-ally.localesPaths": [
       "locales"
-    ]
+    ],
+    "liveServer.settings.multiRootWorkspaceName": "front_ending"
   }
 }

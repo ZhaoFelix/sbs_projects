@@ -3,7 +3,7 @@ const adminRouter = {
   path: '/permission',
   redirect: '/permission/page/index',
   meta: {
-    title: 'menus.permission',
+    title: '权限设置',
     icon: 'lollipop',
     rank: 7,
   },
@@ -12,14 +12,14 @@ const adminRouter = {
       path: '/permission/page/index',
       name: 'permissionPage',
       meta: {
-        title: 'menus.permissionPage',
+        title: '页面权限',
       },
     },
     {
       path: '/permission/button/index',
       name: 'permissionButton',
       meta: {
-        title: 'menus.permissionButton',
+        title: '按钮权限',
         authority: ['v-admin'],
       },
     },
