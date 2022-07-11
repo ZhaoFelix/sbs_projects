@@ -5,7 +5,6 @@ import { openLink } from "/@/utils/link";
 import NProgress from "/@/utils/progress";
 import { findIndex } from "lodash-unified";
 import { transformI18n } from "/@/plugins/i18n";
-import { storageSession } from "/@/utils/storage";
 import { buildHierarchyTree } from "/@/utils/tree";
 import { useMultiTagsStoreHook } from "/@/store/modules/multiTags";
 import { usePermissionStoreHook } from "/@/store/modules/permission";
@@ -32,8 +31,10 @@ import homeRouter from "./modules/home";
 import errorRouter from "./modules/error";
 import remainingRouter from "./modules/remaining";
 import testRouter from './modules/test';
+import { getToken } from "/@/utils/auth";
+
 // 原始静态路由（未做任何处理）
-const routes = [homeRouter, errorRouter,testRouter];
+const routes = [homeRouter, errorRouter];
 
 // 导出处理后的静态路由（三级及以上的路由全部拍成二级）
 export const constantRoutes: Array<RouteRecordRaw> = formatTwoStageRoutes(
@@ -82,7 +83,6 @@ router.beforeEach((to: toRouteType, _from, next) => {
       handleAliveRoute(newMatched);
     }
   }
-  const name = storageSession.getItem("info");
   NProgress.start();
   const externalLink = isUrl(to?.name);
   if (!externalLink)
@@ -93,7 +93,10 @@ router.beforeEach((to: toRouteType, _from, next) => {
         document.title = `${transformI18n(item.meta.title)} | ${Title}`;
       else document.title = transformI18n(item.meta.title);
     });
+ 
+   let name: any =  getToken() //storageSession.getItem("info");
   if (name) {
+    name = JSON.parse(name)
     if (_from?.name) {
       // name为超链接
       if (externalLink) {
@@ -103,6 +106,7 @@ router.beforeEach((to: toRouteType, _from, next) => {
         next();
       }
     } else {
+
       // 刷新
       if (usePermissionStoreHook().wholeMenus.length === 0)
         initRouter(name.username).then((router: Router) => {
@@ -173,6 +177,8 @@ router.beforeEach((to: toRouteType, _from, next) => {
             }
           }
           router.push(to.fullPath);
+        }).catch((error) => { 
+          console.log(error)
         });
       next();
     }

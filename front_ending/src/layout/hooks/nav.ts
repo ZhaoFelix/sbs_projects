@@ -8,14 +8,15 @@ import { transformI18n } from "/@/plugins/i18n";
 import { storageSession } from "/@/utils/storage";
 import { useAppStoreHook } from "/@/store/modules/app";
 import { useEpThemeStoreHook } from "/@/store/modules/epTheme";
-
+import { getToken, removeToken } from "/@/utils/auth";
 const errorInfo = "当前路由配置不正确，请检查配置";
 
 export function useNav() {
   const pureApp = useAppStoreHook();
+  console.log('124')
   // 用户名
-  const username: string = storageSession.getItem("info")?.username;
-
+  const username: string =  JSON.parse(getToken()).username // storageSession.getItem("info")?.username;
+  console.log('12')
   // 设置国际化选中后的样式
   const getDropdownItemStyle = computed(() => {
     return (locale, t) => {
@@ -44,6 +45,8 @@ export function useNav() {
   // 退出登录
   function logout() {
     storageSession.removeItem("info");
+    removeToken()
+    window.location.reload()
     router.push("/login");
   }
 

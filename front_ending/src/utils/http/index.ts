@@ -1,6 +1,5 @@
 import Axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 import {
-  resultType,
   PureHttpError,
   RequestMethods,
   PureHttpResponse,
@@ -9,9 +8,9 @@ import {
 import qs from "qs";
 import NProgress from "../progress";
 import { loadEnv } from "@build/index";
-import { getToken } from "/@/utils/auth";
-import { useUserStoreHook } from "/@/store/modules/user";
-
+import { getToken, removeToken } from "/@/utils/auth";
+import { message } from "@pureadmin/components";
+import router from "/@/router";
 // 加载环境变量 VITE_PROXY_DOMAIN（开发环境）  VITE_PROXY_DOMAIN_REAL（打包后的线上环境）
 const { VITE_PROXY_DOMAIN, VITE_PROXY_DOMAIN_REAL } = loadEnv();
 
@@ -60,23 +59,12 @@ class PureHttp {
           PureHttp.initConfig.beforeRequestCallback($config);
           return $config;
         }
-        const token = getToken();
+        let token: any = getToken();
+        console.log(token)
         if (token) {
-          const data = JSON.parse(token);
-          const now = new Date().getTime();
-          const expired = parseInt(data.expires) - now <= 0;
-          if (expired) {
-            // token过期刷新
-            useUserStoreHook()
-              .refreshToken(data)
-              .then((res: resultType) => {
-                config.headers["Authorization"] = "Bearer " + res.accessToken;
-                return $config;
-              });
-          } else {
-            config.headers["Authorization"] = "Bearer " + data.accessToken;
+          token = JSON.parse(token)
+            config.headers["Authorization"] = "Bearer " + token.accessToken;
             return $config;
-          }
         } else {
           return $config;
         }
@@ -107,12 +95,15 @@ class PureHttp {
         return response.data;
       },
       (error: PureHttpError) => {
-        const $error = error;
-        $error.isCancelRequest = Axios.isCancel($error);
-        // 关闭进度条动画
-        NProgress.done();
-        // 所有的响应异常 区分来源为取消请求/非取消请求
-        return Promise.reject($error);
+        const res: any = error.response.data
+        if (res.code == 2002) {
+          message.error(res.message)
+        } else if (res.code == 401) { 
+          sessionStorage.clear()
+          removeToken()
+          message.error("token已过期，返回重新登录")
+          router.push('/login')
+        }
       }
     );
   }

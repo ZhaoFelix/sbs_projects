@@ -1,6 +1,6 @@
 const mysql = require('mysql')
 const env = require('./env')
-let pool = mysql.createPool(env.dev.dbInfo)
+let pool = mysql.createPool(env.IS_DEV ? env.dev.dbInfo : {})
 
 // let pool = mysql.createConnection(env.dev.dbInfo)
 function queryDB(sql, params = '1') {
@@ -23,5 +23,5 @@ function queryDB(sql, params = '1') {
 }
 
 module.exports = {
-  queryDB
+  queryDB,
 }

@@ -12,7 +12,7 @@ import { bg, avatar, currentWeek } from "./utils/static";
 import { ReImageVerify } from "/@/components/ReImageVerify";
 import { useRenderIcon } from "/@/components/ReIcon/src/hooks";
 import { getLogin } from "/@/api/user";
-
+import { setToken } from "/@/utils/auth";
 const imgCode = ref("");
 const router = useRouter();
 const loading = ref(false);
@@ -41,7 +41,12 @@ const onLogin = async (formEl: FormInstance | undefined) => {
               username: data.data.admin,
               accessToken: data.data.token
             });
-            initRouter("admin").then(() => {});
+            setToken({
+              username: data.data.admin,
+              accessToken: data.data.token,
+              expires: data.data.expires
+            });
+            initRouter(data.data.admin).then(() => {});
             message.success("登录成功");
             router.push("/");
           } else {

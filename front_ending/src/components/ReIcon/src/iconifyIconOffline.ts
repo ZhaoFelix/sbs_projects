@@ -11,6 +11,8 @@ import ArrowDown from "@iconify-icons/ep/arrow-down";
 import CloseBold from "@iconify-icons/ep/close-bold";
 import Bell from "@iconify-icons/ep/bell";
 import Search from "@iconify-icons/ep/search";
+import Folder from "@iconify-icons/ep/folder";
+
 addIcon("check", Check);
 addIcon("home-filled", HomeFilled);
 addIcon("setting", Setting);
@@ -20,6 +22,7 @@ addIcon("arrow-down", ArrowDown);
 addIcon("close-bold", CloseBold);
 addIcon("bell", Bell);
 addIcon("search", Search);
+addIcon("folder", Folder)
 
 // remixicon
 import ArrowRightSLine from "@iconify-icons/ri/arrow-right-s-line";

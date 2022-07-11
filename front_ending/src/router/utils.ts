@@ -115,7 +115,6 @@ function resetRouter(): void {
 
 // 初始化路由
 function initRouter(name: string) {
-  console.log(name)
   return new Promise(resolve => {
     getAsyncRoutes({ name }).then(({ info }) => {
       if (info.length === 0) {
@@ -123,11 +122,12 @@ function initRouter(name: string) {
       } else {
         formatFlatteningRoutes(addAsyncRoutes(info)).map(
           (v: RouteRecordRaw) => {
+            // TODO:新增解决不同账号退出登录路由不刷新问题
             // 防止重复添加路由
             if (
               router.options.routes[0].children.findIndex(
                 value => value.path === v.path
-              ) !== -1
+              ) !== -1 
             ) {
               return;
             } else {

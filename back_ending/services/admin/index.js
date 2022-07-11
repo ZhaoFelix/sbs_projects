@@ -1,5 +1,6 @@
 const DB = require('../../config/db')
-
+const jwt = require('jsonwebtoken')
+const { jwt_options } = require('../../config/env')
 function loginService(admin) {
   const { username, password } = admin
   return DB.queryDB(
@@ -20,9 +21,17 @@ function loginService(admin) {
       if (data.length == 0) {
         return Promise.reject('密码不正确')
       } else {
+        const token = jwt.sign(
+          { username: username },
+          jwt_options.PRIVATE_KEY,
+          {
+            expiresIn: jwt_options.JWT_EXPIRED,
+          }
+        )
         return Promise.resolve({
           admin: username,
-          token: '235ytrew3456',
+          token: token,
+          expires: jwt_options.JWT_EXPIRED,
         })
       }
     })

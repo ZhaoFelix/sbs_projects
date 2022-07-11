@@ -3,12 +3,12 @@ const { otherRouter } = require('./otherRoutes')
 
 function getAsyncRoutes(name) {
   if (name == 'admin') {
-    return [adminRouter, systemRouter]
+    return [adminRouter]
   } else {
-    return [otherRouter]
+    return [systemRouter]
   }
 }
 
 module.exports = {
-  getAsyncRoutes
+  getAsyncRoutes,
 }

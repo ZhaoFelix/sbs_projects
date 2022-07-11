@@ -7,7 +7,7 @@ const jwt = require('../utils/jwt')
 
 // jwt中间件
 // 要放置在所有路由前
-// router.use(jwt)
+router.use(jwt)
 
 // 扫描路由路径，自动导入接口路由
 const scanResult = helper.scanDirModules(__dirname, __filename)

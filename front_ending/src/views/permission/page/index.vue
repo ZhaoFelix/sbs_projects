@@ -8,8 +8,8 @@ export default {
 import { ref, unref } from "vue";
 import { storageSession } from "/@/utils/storage";
 import { useRenderIcon } from "/@/components/ReIcon/src/hooks";
-
-let purview = ref<string>(storageSession.getItem("info").username);
+import { getToken } from "/@/utils/auth";
+let purview = ref<string>(JSON.parse(getToken()).username); //ref<string>(storageSession.getItem("info").username);
 
 function changRole() {
   if (unref(purview) === "admin") {

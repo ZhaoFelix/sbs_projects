@@ -7,8 +7,9 @@ export default {
 <script setup lang="ts">
 import { ref } from "vue";
 import { storageSession } from "/@/utils/storage";
+import { getToken } from "/@/utils/auth";
 
-const auth = ref<boolean>(storageSession.getItem("info").username || "admin");
+const auth = ref<boolean>(JSON.parse(getToken()).username || "admin"); //ref<boolean>(storageSession.getItem("info").username || "admin");
 
 function changRole(value) {
   storageSession.setItem("info", {
