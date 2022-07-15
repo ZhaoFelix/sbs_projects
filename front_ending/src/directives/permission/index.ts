@@ -6,9 +6,7 @@ export const auth: Directive = {
   mounted(el: HTMLElement, binding: DirectiveBinding) {
     const { value } = binding;
     if (value) {
-      console.log("当前角色类型："+value)
       const authRoles = value;
-      console.log(usePermissionStoreHook().buttonAuth)
       const hasAuth = usePermissionStoreHook().buttonAuth.includes(authRoles);
       if (!hasAuth) {
         el.parentNode.removeChild(el);

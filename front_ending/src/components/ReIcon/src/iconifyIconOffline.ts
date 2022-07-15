@@ -11,8 +11,8 @@ import ArrowDown from "@iconify-icons/ep/arrow-down";
 import CloseBold from "@iconify-icons/ep/close-bold";
 import Bell from "@iconify-icons/ep/bell";
 import Search from "@iconify-icons/ep/search";
-import Folder from "@iconify-icons/ep/folder";
-
+import UserFilled from "@iconify-icons/ep/user-filled"
+import Refresh from "@iconify-icons/ep/refresh"
 addIcon("check", Check);
 addIcon("home-filled", HomeFilled);
 addIcon("setting", Setting);
@@ -22,7 +22,8 @@ addIcon("arrow-down", ArrowDown);
 addIcon("close-bold", CloseBold);
 addIcon("bell", Bell);
 addIcon("search", Search);
-addIcon("folder", Folder)
+addIcon("user-filled", UserFilled)
+addIcon("refresh", Refresh)
 
 // remixicon
 import ArrowRightSLine from "@iconify-icons/ri/arrow-right-s-line";
@@ -34,6 +35,7 @@ import ArrowDownLine from "@iconify-icons/ri/arrow-down-line";
 import Bookmark from "@iconify-icons/ri/bookmark-2-line";
 import User from "@iconify-icons/ri/user-3-fill";
 import Lock from "@iconify-icons/ri/lock-fill";
+import AddFill from "@iconify-icons/ri/add-circle-fill"
 addIcon("arrow-right-s-line", ArrowRightSLine);
 addIcon("arrow-left-s-line", ArrowLeftSLine);
 addIcon("logout-circle-r-line", LogoutCircleRLine);
@@ -43,6 +45,16 @@ addIcon("arrow-down-line", ArrowDownLine);
 addIcon("bookmark", Bookmark);
 addIcon("user", User);
 addIcon("lock", Lock);
+addIcon("add", AddFill)
+
+
+
+// Material Design Icons
+import Expand from "@iconify-icons/mdi/arrow-expand-down";
+import UnExpand from "@iconify-icons/mdi/arrow-expand-right";
+addIcon("expand", Expand);
+addIcon("unExpand", UnExpand);
+
 
 // Iconify Icon在Vue里离线使用（用于内网环境）https://docs.iconify.design/icon-components/vue/offline.html
 export default defineComponent({

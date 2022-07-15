@@ -40,6 +40,17 @@ function loginService(admin) {
     })
 }
 
+// 按页查询
+function queryAdminByPage() {
+  return DB.queryDB('select * from t_admin_list')
+}
+// 查询总的记录数
+function queryAdminTotalPage() {
+  return DB.queryDB('select count(admin_id) as total from t_admin_list')
+}
+
 module.exports = {
   loginService,
+  queryAdminByPage,
+  queryAdminTotalPage,
 }

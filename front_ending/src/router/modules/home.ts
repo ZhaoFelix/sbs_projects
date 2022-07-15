@@ -6,7 +6,7 @@ const homeRouter = {
   component: Layout,
   redirect: "/welcome",
   meta: {
-    icon: "folder",
+    icon: "home-filled",
     title: "首页",
     rank: 0
   },

@@ -58,7 +58,6 @@ class PureHttp {
           return $config;
         }
         let token: any = getToken();
-        console.log(token)
         if (token) {
           token = JSON.parse(token)
             config.headers["Authorization"] = "Bearer " + token.accessToken;

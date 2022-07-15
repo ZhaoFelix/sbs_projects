@@ -36,7 +36,7 @@ const onLogin = async (formEl: FormInstance | undefined) => {
         .then((data: any) => {
           if (data.code == 2000) {
             loading.value = false;
-            console.log(data.data.admin);
+           
             storageSession.setItem("info", {
               username: data.data.admin,
               accessToken: data.data.token

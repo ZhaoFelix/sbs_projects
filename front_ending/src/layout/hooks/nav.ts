@@ -12,10 +12,8 @@ const errorInfo = "当前路由配置不正确，请检查配置";
 
 export function useNav() {
   const pureApp = useAppStoreHook();
-  console.log('124')
   // 用户名
   const username: string =  JSON.parse(getToken()).username // storageSession.getItem("info")?.username;
-  console.log('12')
   // 设置国际化选中后的样式
   const getDropdownItemStyle = computed(() => {
     return (locale, t) => {

@@ -7,6 +7,8 @@ import { createApp, Directive } from "vue";
 import { MotionPlugin } from "@vueuse/motion";
 import { injectResponsiveStorage } from "/@/utils/storage/responsive";
 
+import Table from "@pureadmin/table";
+
 import "uno.css";
 import "animate.css";
 // 引入重置样式
@@ -43,6 +45,6 @@ getServerConfig(app).then(async config => {
   await router.isReady();
   injectResponsiveStorage(app, config);
   setupStore(app);
-  app.use(MotionPlugin).use(ElementPlus);
+  app.use(MotionPlugin).use(ElementPlus).use(Table);
   app.mount("#app");
 });
